@@ -1,0 +1,39 @@
+.rangeTabContainer {
+  display: flex;
+  margin-top: 20px;
+  border: 1px solid #e3e3e3;
+  overflow: hidden;
+  width: fit-content;
+  border-radius: 6px;
+}
+
+.rangeTabButton {
+  width: 70px;
+  padding: 6px 0;
+  background-color: #FFFFFF;
+  color: #93989a;
+  border: none;
+  border-right: 1px solid #e3e3e3;
+  border-radius: 0px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.rangeTabButton:last-child {
+  border-right: none;
+}
+
+.rangeTabButton.selected {
+  background-color: #7B5E57;
+  border-color: #7B5E57;
+  color: #ffffff;
+}
+
+.rangeTabButton:focus,
+.rangeTabButton:focus-visible,
+.rangeTabButton:hover {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: #CCCCCC;
+}

@@ -1,0 +1,49 @@
+.tabWrapper {
+  position: relative;
+  width: fit-content;
+}
+
+.tabContainer {
+  display: flex;
+  position: relative;
+  width: 140px;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #efefef;
+}
+
+.tabButton {
+  flex: 1;
+  padding: 8px 0;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.slider {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background-color: #7B5E57;
+  border-radius: 6px;
+  transition: transform 0.3s ease;
+  z-index: 0;
+}
+
+.tabButton {
+  color: #777f81;
+  z-index: 1;
+  position: relative;
+}
+
+.tabButton.selected {
+  color: #FFFFFF;
+}
+
+.tabButton:focus {
+  outline: none;
+}

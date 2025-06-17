@@ -1,0 +1,36 @@
+.datePickerWrapper {
+  width: 150px;
+  margin-top: 20px;
+  z-index: 100;
+}
+
+.inputButton {
+  width: 132px;
+  background-color: #fff;
+  border: 1px solid #efefef;
+  color: #93989a;
+  padding: 6px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 6px;
+}
+
+.inputButton:focus,
+.inputButton:focus-visible,
+.inputButton:hover {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: #efefef;
+}
+
+.inputButton span {
+  user-select: none;
+}
+
+.image {
+  width: 18px;
+  height: 18px;
+}

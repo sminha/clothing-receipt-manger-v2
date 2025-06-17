@@ -1,0 +1,37 @@
+.button {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+  gap: 8px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  color: #93989a;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background-color: #efefef;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.selected .checkbox,
+.button.selected .checkbox {
+  background-color: #7B5E57;
+}
+
+.selected .label,
+.button.selected .label {
+  color: #7B5E57;
+}
+
+.label {
+  user-select: none;
+}
