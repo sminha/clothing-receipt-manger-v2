@@ -37,3 +37,11 @@
   box-shadow: none !important;
   border-color: #CCCCCC;
 }
+
+.rangeTabButton:disabled,
+.rangeTabButton.selected:disabled {
+  background-color: #f6f6f6;
+  border-color: #e3e3e3;
+  color: #CCCCCC;
+  cursor: not-allowed;
+}

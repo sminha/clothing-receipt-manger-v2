@@ -1,15 +1,36 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import styles from './Profile.module.css';
 import buttonPng from '../../assets/button.png';
 import profileImg from '../../assets/profileImage.jpg';
+import { AppDispatch, RootState } from '../../redux/store.ts';
+import { setUserCompany, setUserName, setUserBirth, setUserPhone } from '../../redux/slices/userSlice.ts';
 
 export default function EditProfilePage() {
   const navigate = useNavigate();
+
+  const dispatch = useDispatch<AppDispatch>();
+
+  const userInfo = useSelector((state: RootState) => state.user);
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const name = userInfo.name;
+  const [localCompany, setLocalCompany] = useState(userInfo.company);
+  const [localName, setLocalName] = useState(userInfo.name);
+  const [localBirth, setLocalBirth] = useState(userInfo.birth);
+  const [localPhone, setLocalPhone] = useState(userInfo.phone);
 
   const toggleDropdown = () => {
     setIsDropdownOpen(prev => !prev);
+  };
+
+  const handleSave = () => {
+    dispatch(setUserCompany(localCompany));
+    dispatch(setUserName(localName));
+    dispatch(setUserBirth(localBirth));
+    dispatch(setUserPhone(localPhone));
+    navigate('/view');
   };
 
   return (
@@ -26,7 +47,7 @@ export default function EditProfilePage() {
         </div>
         <div className={styles.profile}>
           <img src={profileImg} className={styles.profileImage} />
-          <span className={styles.profileName} role="button" onClick={toggleDropdown}>스즈님</span>
+          <span className={styles.profileName} role="button" onClick={toggleDropdown}>{name}님</span>
           {isDropdownOpen && (
             <div className={styles.dropdown}>
               <div className={styles.dropdownItem}>계정정보</div>
@@ -41,32 +62,32 @@ export default function EditProfilePage() {
         <div className={styles.edit}>
           <span className={styles.editTitle}>내 정보 수정</span>
           <div className={styles.editProfileImage}>
-            <span className={styles.nameInEdit}>스즈님</span>
+            <span className={styles.nameInEdit}>{name}님</span>
             <img src={profileImg} className={styles.profileImageInEdit} />
           </div>
 
           <form className={styles.editForm}>
             <div className={styles.businessNameInputWrapper}>
               <label>상호명<span className={styles.necessary}> *</span></label>
-              <input className={styles.businessNameInput} placeholder="스즈" />
+              <input className={styles.businessNameInput} value={localCompany} onChange={(e) => setLocalCompany(e.target.value)} />
             </div>
             <div className={styles.nameInputWrapper}>
               <label>이름<span className={styles.necessary}> *</span></label>
-              <input className={styles.nameInput} placeholder="홍길동" />
+              <input className={styles.nameInput} value={localName} onChange={(e) => setLocalName(e.target.value)} />
             </div>
             <div className={styles.birthdateInputWrapper}>
               <label>생년월일<span className={styles.necessary}> *</span></label>
-              <input className={styles.birthdateInput} placeholder="901020" />
+              <input className={styles.birthdateInput} value={localBirth} onChange={(e) => setLocalBirth(e.target.value)} />
             </div>
             <div className={styles.phoneInputWrapper}>
               <label>전화번호<span className={styles.necessary}> *</span></label>
-              <input className={styles.phoneInput} placeholder="010-1234-5678" />
+              <input className={styles.phoneInput} value={localPhone} onChange={(e) => setLocalPhone(e.target.value)} />
             </div>
           </form>
 
           <div className={styles.editButtonWrapper}>
-            <button className={styles.cancelButton} onClick={() => navigate('/mypage')}>취소</button>
-            <button className={styles.saveButton} onClick={() => navigate('/mypage')}>저장</button>
+            <button className={styles.cancelButton} onClick={() => navigate('/view')}>취소</button>
+            <button className={styles.saveButton} onClick={handleSave}>저장</button>
           </div>
         </div>
       </div>

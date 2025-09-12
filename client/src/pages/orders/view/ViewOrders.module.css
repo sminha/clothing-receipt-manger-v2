@@ -139,6 +139,12 @@
   font-weight: 600;
 }
 
+.periodContent {
+  text-align: center;
+  padding-bottom: 10px;
+  color: #000000;
+}
+
 .periodWrapper {
   flex: 4;
 }
@@ -204,8 +210,12 @@
   justify-content: space-between;
 }
 
+.leftResultHeader {
+  display: flex;
+  align-items: center;
+}
+
 .resultTitle {
-  margin-top: 5px;
   padding-left: 10px;
   font-weight: 600;
   color: #000000;
@@ -215,10 +225,12 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 10px;
 }
 
 .downloadButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   background-color: #FFFFFF;
   border: 1px solid #cacaca;
   border-radius: 20px;
@@ -229,6 +241,42 @@
 .downloadButton:focus,
 .downloadButton:focus-visible,
 .downloadButton:hover {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: #cacaca;
+}
+
+.excelImg {
+  width: 20px;
+  height: 20px;
+}
+
+.resultDivider {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: -20px;
+  margin-right: -20px;
+  border: 1px solid #efefef;
+}
+
+.resultNavBar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.navBarButton {
+  margin-left: 10px;
+  background-color: #FFFFFF;
+  border: 1px solid #cacaca;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #686868;
+}
+
+.navBarButton:focus,
+.navBarButton:focus-visible,
+.navBarButton:hover {
   outline: none !important;
   box-shadow: none !important;
   border-color: #cacaca;
@@ -473,6 +521,7 @@
 
 .productTable {
   margin-top: 10px;
+  /* margin-left: 4px; */
   font-size: 14px;
 }
 
@@ -483,7 +532,6 @@
 
 .productTable {
   width: 99%;
-  /* table-layout: fixed; */
   table-layout: auto;
   border-collapse: collapse;
   text-align: center;
@@ -548,13 +596,32 @@
   top: 20px;
   right: -22px;
   padding: 0px;
-  /* width: 10px; */
 }
 
 .trashcanImage {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
 }
+
+/* .editCell {
+  position: relative;
+  width: 180px;
+}
+
+.productEditButton {
+  background: #FFFFFF;
+  border: none;
+  cursor: pointer;
+  position: absolute;
+  top: 20px;
+  right: -16px;
+  padding: 0px;
+}
+
+.editImage {
+  width: 12px;
+  height: 12px;
+} */
 
 .hr {
   width: 98%;
@@ -621,25 +688,6 @@
   border-color: #cacaca;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .product {
   display: flex;
   flex-direction: row;
@@ -691,7 +739,7 @@
 }
 
 .productEditInput {
-  width: 570px;
+  width: 564px;
   height: 30px;
   padding-left: 10px;
   padding-right: 10px;

@@ -1,21 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styles from './UnshippedToggle.module.css';
 
-const UnshippedToggle: React.FC = () => {
-  const [selected, setSelected] = useState(false);
+type Props = {
+  onlyUnshipped: boolean;
+  onChange: (value: boolean) => void;
+};
 
+const UnshippedToggle: React.FC<Props> = ({ onlyUnshipped, onChange }) => {
   const toggleSelected = () => {
-    setSelected(prev => !prev);
+    onChange(!onlyUnshipped);
   };
 
   return (
     <button
       type="button"
-      className={`${styles.button} ${selected ? styles.selected : ''}`}
+      className={`${styles.button} ${onlyUnshipped ? styles.selected : ''}`}
       onClick={toggleSelected}
     >
       <span className={styles.checkbox}>
-        {selected && (
+        {onlyUnshipped && (
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="14"

@@ -117,7 +117,6 @@
   display: flex;
   align-items: center;
   margin-top: 26px;
-  /* margin-bottom: 10px; */
   padding-left: 30px;
   font-size: 18px;
   font-weight: 600;
@@ -214,36 +213,6 @@ label {
   box-shadow: none !important;
   border-color: #7B5E57;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 .searchWrapper {
   display: flex;

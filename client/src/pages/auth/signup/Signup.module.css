@@ -79,9 +79,27 @@
 
 .telcompanyInput {
   width: 100px;
-  height: 40px;
+  height: 43px;
   padding-left: 10px;
   margin-right: 10px;
+  border: 1px solid #EDEDED;
+  border-radius: 10px;
+  font-size: 13px;
+  background-color: #fff;
+  color: #878787;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='5' viewBox='0 0 10 5'%3E%3Cpath fill='%236e6e6e' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 10px 5px;
+}
+
+.telcompanyInput:focus,
+.telcompanyInput:hover {
+  outline: none;
+  box-shadow: none;
 }
 
 .phoneInput {
@@ -131,6 +149,7 @@
 }
 
 .codeInputWrapper {
+  position: relative;
   margin-bottom: 30px;
 }
 
@@ -138,6 +157,14 @@
   width: 370px;
   height: 40px;
   padding-left: 10px;
+}
+
+.counter {
+  position: absolute;
+  top: -2px;
+  right: 12px;
+  font-size: 14px;
+  color: #6e6e6e;
 }
 
 button:focus {

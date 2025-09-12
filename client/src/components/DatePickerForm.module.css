@@ -34,3 +34,10 @@
   width: 18px;
   height: 18px;
 }
+
+.inputButton:disabled {
+  background-color: #f6f6f6;
+  border-color: #e3e3e3;
+  color: #CCCCCC;
+  cursor: not-allowed;
+}

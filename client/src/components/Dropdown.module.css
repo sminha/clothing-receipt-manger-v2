@@ -1,11 +1,11 @@
 .dropdownWrapper {
   position: relative;
-  width: fit-content;
   font-size: 14px;
 }
 
 .selectedBox {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 6px;
   cursor: pointer;
@@ -18,19 +18,19 @@
 .optionList {
   position: absolute;
   top: 100%;
-  left: 0;
+  left: 5%;
   background-color: #ffffff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
   margin-top: 4px;
   padding-left: 0px;
   z-index: 10;
-  min-width: 100%;
   list-style: none;
 }
 
 .optionList li {
   padding: 6px 10px;
+  color: #777f81;
   cursor: pointer;
 }
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './DateTypeTab.module.css';
 
-export type DateType = 'purchase' | 'register';
+export type DateType = 'all' | 'purchase' | 'register';
 
 interface DateTypeTabProps {
   selected: DateType;
@@ -9,11 +9,17 @@ interface DateTypeTabProps {
 }
 
 const DateTypeTab: React.FC<DateTypeTabProps> = ({ selected, onSelect }) => {
-  const sliderPosition = selected === 'purchase' ? '0%' : '100%';
+  const sliderPosition = selected === 'all' ? '0%' : selected === 'purchase' ? '100%' : '200%';
 
   return (
     <div className={styles.tabWrapper}>
       <div className={styles.tabContainer}>
+        <button
+          className={`${styles.tabButton} ${selected === 'all' ? styles.selected : ''}`}
+          onClick={() => onSelect('all')}
+        >
+          전체
+        </button>
         <button
           className={`${styles.tabButton} ${selected === 'purchase' ? styles.selected : ''}`}
           onClick={() => onSelect('purchase')}
