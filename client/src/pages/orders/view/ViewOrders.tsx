@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from './ViewOrders.module.css';
@@ -16,7 +16,6 @@ import profileImg from '../../../assets/profileImage.jpg';
 import excelImg from '../../../assets/excel.png';
 import receiptImg from '../../../assets/receipt.png';
 import trashcanImg from '../../../assets/trashcan.png';
-import editImg from '../../../assets/edit.png';
 import testReceiptImg from '../../../assets/test_receipt.png';
 import { RootState } from '../../../redux/store.ts';
 import { PurchaseItem, PurchaseRecord, updatePurchase, deletePurchase, updateMissingQuantity, deleteProduct } from '../../../redux/slices/purchaseSlice.ts';
