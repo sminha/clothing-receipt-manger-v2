@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { generateTestData } from '../../utils/generateTestData.ts';
 
 export interface PurchaseItem {
   itemId: string;
@@ -79,6 +80,9 @@ const purchaseSlice = createSlice({
 
       record.items = record.items.filter((i) => i.itemId !== itemId);
     },
+    setTestData(state, action: PayloadAction<number>) {
+      state.records = generateTestData(action.payload);
+    },
   },
 });
 
@@ -90,6 +94,7 @@ export const {
   resetPurchases,
   updateMissingQuantity,
   deleteProduct,
+  setTestData,
 } = purchaseSlice.actions;
 
 export default purchaseSlice.reducer;

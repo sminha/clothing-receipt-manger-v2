@@ -4,7 +4,7 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import signupReducer from './slices/signupSlice.ts';
 import userReducer from './slices/userSlice.ts';
-import purchaseReducer from './slices/purchaseSlice.ts';
+import purchaseReducer, { setTestData } from './slices/purchaseSlice.ts';
 
 const persistConfig = {
   key: 'root',
@@ -27,6 +27,10 @@ export const store = configureStore({
       serializableCheck: false,
     }),
 });
+
+if (process.env.NODE_ENV === 'development') {
+  store.dispatch(setTestData(1000));
+}
 
 export const persistor = persistStore(store);
 
