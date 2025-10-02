@@ -1,0 +1,73 @@
+.gridWrapper {
+  width: 100%;
+  overflow: auto;
+  background-color: white;
+}
+
+.headerCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  font-size: 14px;
+  border-bottom: 2.4px solid #e8e8e8;
+  box-sizing: border-box;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  width: 30px;
+  color: #93989a;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background-color: #efefef;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.selected .checkbox {
+  background-color: #7B5E57;
+}
+
+.textButton {
+  cursor: pointer;
+  color: #3282F6;
+}
+
+.receiptImg {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.rowSelected {
+  background-color: #f5f0ef;
+}
+
+.cell:nth-child(1) {
+  position: sticky;
+  left: 0;
+  background: white;
+  z-index: 2;
+}
