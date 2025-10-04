@@ -84,6 +84,40 @@ app.post('/api/auth/signup', async (req, res) => {
   }
 });
 
+app.post('/api/auth/login', async (req, res) => {
+  const { name, birth, phone } = req.body;
+
+  if (!name || !birth || !phone) {
+    return res.status(400).json({ message: '모든 필드를 입력해주세요.' });
+  }
+
+  try {
+    const [rows]: any = await db.query(
+      'SELECT name, birth, gender, carrier, phone, company FROM users WHERE name = ? AND birth = ? AND phone = ?',
+      [name, birth, phone]
+    );
+
+    if (rows.length === 0) {
+      return res.status(409).json({ message: '존재하지 않는 사용자입니다.' });
+    }
+
+    const user = rows[0];
+    res.status(200).json({
+      message: '로그인 완료',
+      user: {
+        name: user.name,
+        birth: user.birth,
+        gender: user.gender,
+        carrier: user.carrier,
+        phone: user.phone,
+        company: user.company,
+      } });
+  } catch (error) {
+    console.error('로그인 오류', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
 app.post("/api/upload-image", upload.single("image"), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: "이미지가 업로드되지 않았습니다." });
 

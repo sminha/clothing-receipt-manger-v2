@@ -1,12 +1,15 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
 
 interface UserState {
   company: string;
   name: string;
   birth: string;
-  gender: 'male' | 'female' | '';
+  gender: 'm' | 'f' | '';
   carrier: string;
   phone: string;
+  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  error: string | null;
 }
 
 const initialState: UserState = {
@@ -16,7 +19,27 @@ const initialState: UserState = {
   gender: '',
   carrier: '',
   phone: '',
+  status: 'idle',
+  error: null,
 };
+
+export const loginUser = createAsyncThunk(
+  'user/loginUser',
+  async (loginInfo: Omit<UserState, 'company' | 'gender' | 'carrier' | 'status' | 'error'>, { rejectWithValue }) => {
+    try {
+      const res = await axios.post('http://localhost:5000/api/auth/login', loginInfo, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      return res.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data.message || '로그인 실패');
+      }
+      return rejectWithValue('서버 오류');
+    }
+  }
+);
 
 const userSlice = createSlice({
   name: 'user',
@@ -31,7 +54,7 @@ const userSlice = createSlice({
     setUserBirth(state, action: PayloadAction<string>) {
       state.birth = action.payload;
     },
-    setUserGender(state, action: PayloadAction<'male' | 'female' | ''>) {
+    setUserGender(state, action: PayloadAction<'m' | 'f' | ''>) {
       state.gender = action.payload;
     },
     setUserCarrier(state, action: PayloadAction<string>) {
@@ -44,6 +67,27 @@ const userSlice = createSlice({
       Object.assign(state, initialState);
     },
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loginUser.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+
+        const user = action.payload.user;
+        state.company = user.company;
+        state.name = user.name;
+        state.birth = user.birth;
+        state.gender = user.gender;
+        state.carrier = user.carrier;
+        state.phone = user.phone;
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload as string;
+      })
+  }
 });
 
 export const {
