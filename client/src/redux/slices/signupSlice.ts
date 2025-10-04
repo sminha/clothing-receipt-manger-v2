@@ -1,11 +1,13 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import axios from 'axios';
 interface SignupState {
   name: string;
   birth: string;
-  gender: 'male' | 'female' | '';
+  gender: 'm' | 'f' | '';
   carrier: string;
   phone: string;
+  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  error: string | null;
 }
 
 const initialState: SignupState = {
@@ -14,7 +16,27 @@ const initialState: SignupState = {
   gender: '',
   carrier: '',
   phone: '',
+  status: 'idle',
+  error: null,
 };
+
+export const signupUser = createAsyncThunk(
+  'signup/signupUser',
+  async (signupInfo: Omit<SignupState, 'status' | 'error'>, { rejectWithValue }) => {
+    try {
+      const res = await axios.post('http://localhost:5000/api/auth/signup', signupInfo, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      return res.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data.message || '회원가입 실패');
+      }
+      return rejectWithValue('서버 오류');
+    }
+  }
+);
 
 const signupSlice = createSlice({
   name: 'signup',
@@ -26,7 +48,7 @@ const signupSlice = createSlice({
     setBirth(state, action: PayloadAction<string>) {
       state.birth = action.payload;
     },
-    setGender(state, action: PayloadAction<'male' | 'female' | ''>) {
+    setGender(state, action: PayloadAction<'m' | 'f' | ''>) {
       state.gender = action.payload;
     },
     setCarrier(state, action: PayloadAction<string>) {
@@ -38,6 +60,19 @@ const signupSlice = createSlice({
     resetSignup(state) {
       Object.assign(state, initialState);
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(signupUser.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(signupUser.fulfilled, (state) => {
+        state.status = 'succeeded';
+      })
+      .addCase(signupUser.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload as string;
+      })
   },
 });
 

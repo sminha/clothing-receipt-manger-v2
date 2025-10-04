@@ -55,6 +55,35 @@ app.get("/", async (req, res) => {
   }
 });
 
+app.post('/api/auth/signup', async (req, res) => {
+  const { name, birth, gender, carrier, phone } = req.body;
+
+  if (!name || !birth || !gender || !carrier || !phone) {
+    return res.status(400).json({ message: '모든 필드를 입력해주세요.' });
+  }
+
+  try {
+    const [existingUsers] = await db.query(
+      'SELECT user_id FROM users WHERE phone = ?',
+      [phone]
+    );
+
+    if ((existingUsers as any[]).length > 0) {
+      return res.status(409).json({ message: '이미 가입된 사용자입니다.' });
+    }
+
+    await db.query(
+      'INSERT INTO users (name, birth, gender, carrier, phone) VALUES (?, ?, ?, ?, ?)',
+      [name, birth, gender, carrier, phone]
+    )
+
+    res.status(200).json({ message: '회원가입 완료' });
+  } catch (error) {
+    console.error('회원가입 오류', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
 app.post("/api/upload-image", upload.single("image"), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: "이미지가 업로드되지 않았습니다." });
 

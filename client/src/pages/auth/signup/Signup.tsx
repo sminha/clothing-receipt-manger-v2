@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from './Signup.module.css';
 import buttonGif from '../../../assets/button.gif';
-import { RootState } from '../../../redux/store.ts';
-import { setName, setBirth, setGender, setCarrier, setPhone } from '../../../redux/slices/signupSlice.ts';
-import { setUserName, setUserBirth, setUserGender, setUserCarrier, setUserPhone } from '../../../redux/slices/userSlice.ts';
+import { RootState, AppDispatch } from '../../../redux/store.ts';
+import { setName, setBirth, setGender, setCarrier, setPhone, signupUser } from '../../../redux/slices/signupSlice.ts';
+// import { setUserName, setUserBirth, setUserGender, setUserCarrier, setUserPhone } from '../../../redux/slices/userSlice.ts';
 
 export default function SignupPage() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const signupInfo = useSelector((state: RootState) => state.signup);
 
@@ -38,6 +38,22 @@ export default function SignupPage() {
   // useEffect(() => {
   //   console.log('회원가입 화면:', signupInfo);
   // }, []);
+
+  const handleSignup = async () => {
+    const resultAction = await dispatch(signupUser({
+      name: signupInfo.name,
+      birth: signupInfo.birth,
+      gender: signupInfo.gender,
+      carrier: signupInfo.carrier,
+      phone: signupInfo.phone,
+    }));
+
+    if (signupUser.fulfilled.match(resultAction)) {
+      navigate('/login');
+    } else {
+      alert(resultAction.payload || '회원가입 실패');
+    }
+  }
   
   return (
     <div className={styles.IntroPage}>
@@ -49,27 +65,39 @@ export default function SignupPage() {
           <>
             <form className={styles.form} autoComplete="off">
               <div className={styles.nameInputWrapper}>
-                <input name="name" className={styles.nameInput} placeholder="이름" onChange={(e) => { dispatch(setName(e.target.value)); dispatch(setUserName(e.target.value)); }} />
+                <input name="name" className={styles.nameInput} placeholder="이름" onChange={(e) => { dispatch(setName(e.target.value)); /* dispatch(setUserName(e.target.value)); */ }} />
               </div>
               <div className={styles.birthdateInputWrapper}>
-                <input name="birthdate" className={styles.birthdateInput} placeholder="생년월일" onChange={(e) => { dispatch(setBirth(e.target.value)); dispatch(setUserBirth(e.target.value)); }} />
+                <input name="birthdate" className={styles.birthdateInput} placeholder="생년월일" onChange={(e) => { dispatch(setBirth(e.target.value)); /* dispatch(setUserBirth(e.target.value)); */ }} />
                 <p className={styles.birthdateInputText}>–</p>
-                <input name="gender" className={styles.genderInput} onChange={(e) => { dispatch(setGender(e.target.value as 'male' | 'female' | '')); dispatch(setUserGender(e.target.value  as 'male' | 'female' | '')); }} />
+                <input name="gender" className={styles.genderInput} onChange={(e) => {
+                  let gender: 'm' | 'f' | '' = '';
+                  
+                  if (Number(signupInfo.birth.slice(0, 2)) > 25) {
+                    gender = e.target.value === '1' ? 'm' : 'f';
+                  } else {
+                    gender = e.target.value === '3' ? 'm' : 'f';
+                  }
+
+                  dispatch(setGender(gender));
+                  // dispatch(setUserGender(e.target.value  as 'male' | 'female' | ''));
+                }} />
                 <p className={styles.birthdateInputText}>●●●●●●</p>
               </div>
               <div className={styles.phoneInputWrapper}>
-                <select className={styles.telcompanyInput} defaultValue="" onChange={(e) => { dispatch(setCarrier(e.target.value)); dispatch(setUserCarrier(e.target.value)); }}>
+                <select className={styles.telcompanyInput} defaultValue="" onChange={(e) => { dispatch(setCarrier(e.target.value)); /* dispatch(setUserCarrier(e.target.value)); */ }}>
                   <option value="" disabled>통신사</option>
                   <option value="SKT">SKT</option>
                   <option value="KT">KT</option>
                   <option value="LGU+">LG U+</option>
                   <option value="알뜰폰">알뜰폰</option>
                 </select>
-                <input name="phone"className={styles.phoneInput} placeholder="휴대폰 번호" onChange={(e) => { dispatch(setPhone(e.target.value)); dispatch(setUserPhone(e.target.value)); }} />
+                <input name="phone"className={styles.phoneInput} placeholder="휴대폰 번호" onChange={(e) => { dispatch(setPhone(e.target.value)); /* dispatch(setUserPhone(e.target.value)); */ }} />
               </div>
             </form>
             {/* <button className={styles.button} onClick={() => setIsCodeSent(true)}>인증번호 받기</button> */}
-            <button className={styles.button} onClick={() => navigate('/login')}>회원가입하기</button>
+            {/* <button className={styles.button} onClick={() => navigate('/login')}>회원가입하기</button> */}
+            <button className={styles.button} onClick={handleSignup}>회원가입하기</button>
           </>
            {/* :
            <>
