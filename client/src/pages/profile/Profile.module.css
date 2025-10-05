@@ -306,10 +306,6 @@ input[disabled] {
   justify-content: space-between;
 }
 
-.leftResultHeader {
-
-}
-
 .rightResultHeader {
   display: flex;
   flex-direction: row;
