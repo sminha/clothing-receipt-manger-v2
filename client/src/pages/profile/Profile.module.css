@@ -175,6 +175,11 @@ label {
   border-radius: 6px;
 }
 
+input[disabled] {
+  background-color: #F6F6F6;
+  cursor: not-allowed;
+}
+
 .editButtonWrapper {
   margin: 40px;
 }
