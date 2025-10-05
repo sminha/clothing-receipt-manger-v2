@@ -93,7 +93,7 @@ app.post('/api/auth/login', async (req, res) => {
 
   try {
     const [rows]: any = await db.query(
-      'SELECT name, birth, gender, carrier, phone, company FROM users WHERE name = ? AND birth = ? AND phone = ?',
+      'SELECT user_id, name, birth, gender, carrier, phone, company FROM users WHERE name = ? AND birth = ? AND phone = ?',
       [name, birth, phone]
     );
 
@@ -105,6 +105,7 @@ app.post('/api/auth/login', async (req, res) => {
     res.status(200).json({
       message: '로그인 완료',
       user: {
+        id: user.user_id,
         name: user.name,
         birth: user.birth,
         gender: user.gender,
@@ -114,6 +115,32 @@ app.post('/api/auth/login', async (req, res) => {
       } });
   } catch (error) {
     console.error('로그인 오류', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
+app.patch('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+  const { company } = req.body;
+
+  if (!company) {
+    return res.status(400).json({ message: '상호명을 입력해주세요.' });
+  }
+
+  try {
+    await db.query(
+      'UPDATE users SET company = ? where user_id = ?',
+      [company, id]
+    );
+
+    return res.status(200).json({
+      message: '정보 수정 완료',
+      user: {
+        company: company,
+      }
+    })
+  } catch (error) {
+    console.error('정보 수정 오류', error);
     res.status(500).json({ message: '서버 오류' });
   }
 });

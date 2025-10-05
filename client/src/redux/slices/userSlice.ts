@@ -2,6 +2,7 @@ import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 interface UserState {
+  id: number | null;
   company: string;
   name: string;
   birth: string;
@@ -13,6 +14,7 @@ interface UserState {
 }
 
 const initialState: UserState = {
+  id: null,
   company: '',
   name: '',
   birth: '',
@@ -25,7 +27,7 @@ const initialState: UserState = {
 
 export const loginUser = createAsyncThunk(
   'user/loginUser',
-  async (loginInfo: Omit<UserState, 'company' | 'gender' | 'carrier' | 'status' | 'error'>, { rejectWithValue }) => {
+  async (loginInfo: Omit<UserState, 'id' | 'company' | 'gender' | 'carrier' | 'status' | 'error'>, { rejectWithValue }) => {
     try {
       const res = await axios.post('http://localhost:5000/api/auth/login', loginInfo, {
         headers: { 'Content-Type': 'application/json' },
@@ -35,6 +37,24 @@ export const loginUser = createAsyncThunk(
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         return rejectWithValue(error.response.data.message || '로그인 실패');
+      }
+      return rejectWithValue('서버 오류');
+    }
+  }
+);
+
+export const editUser = createAsyncThunk(
+  'user/editUser',
+  async (userInfo: Omit<UserState, 'name' | 'birth' | 'gender' | 'carrier' | 'phone' | 'status' | 'error'>, { rejectWithValue }) => {
+    try {
+      const res = await axios.patch(`http://localhost:5000/api/users/${userInfo.id}`, userInfo, {
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      return res.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data.message || '정보 수정 실패');
       }
       return rejectWithValue('서버 오류');
     }
@@ -76,6 +96,7 @@ const userSlice = createSlice({
         state.status = 'succeeded';
 
         const user = action.payload.user;
+        state.id = user.id;
         state.company = user.company;
         state.name = user.name;
         state.birth = user.birth;
@@ -84,6 +105,19 @@ const userSlice = createSlice({
         state.phone = user.phone;
       })
       .addCase(loginUser.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload as string;
+      })
+      .addCase(editUser.pending, (state) => {
+        state.status = 'idle';
+      })
+      .addCase(editUser.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+
+        const user = action.payload.user;
+        state.company = user.company;
+      })
+      .addCase(editUser.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload as string;
       })
