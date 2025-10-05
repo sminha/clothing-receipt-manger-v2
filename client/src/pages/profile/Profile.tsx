@@ -69,15 +69,15 @@ export default function EditProfilePage() {
               <input className={styles.businessNameInput} value={localCompany} onChange={(e) => setLocalCompany(e.target.value)} />
             </div>
             <div className={styles.nameInputWrapper}>
-              <label>이름<span className={styles.necessary}> *</span></label>
+              <label>이름</label>
               <input className={styles.nameInput} value={userInfo.name} disabled />
             </div>
             <div className={styles.birthdateInputWrapper}>
-              <label>생년월일<span className={styles.necessary}> *</span></label>
+              <label>생년월일</label>
               <input className={styles.birthdateInput} value={userInfo.birth} disabled />
             </div>
             <div className={styles.phoneInputWrapper}>
-              <label>전화번호<span className={styles.necessary}> *</span></label>
+              <label>전화번호</label>
               <input className={styles.phoneInput} value={userInfo.phone} disabled />
             </div>
           </form>
