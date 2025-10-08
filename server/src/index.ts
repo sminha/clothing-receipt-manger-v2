@@ -180,7 +180,7 @@ app.post('/api/purchases', async (req, res) => {
       typeof i.category !== "string" || i.category.trim() === "" ||
       typeof i.unitPrice !== "number" || i.unitPrice <= 0 ||
       typeof i.quantity !== "number" || i.quantity <= 0 ||
-      typeof i.unreceived_quantity !== "number" || i.unreceived_quantity < 0
+      typeof i.missingQuantity !== "number" || i.missingQuantity < 0
     ) {
       isAllItemsValid = false;
       break;
@@ -242,8 +242,6 @@ app.get('/api/users/:id/purchases', async (req, res) => {
         ORDER BY p.purchase_date DESC, p.purchase_id DESC;`,
         [id]
       )
-
-      console.log(rows);
 
       return res.status(200).json({
         message: '사입내역 조회 완료',
