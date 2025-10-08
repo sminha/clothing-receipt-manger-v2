@@ -6,7 +6,7 @@ import buttonPng from '../../../assets/button.png';
 import profileImg from '../../../assets/profileImage.jpg';
 import trashcanImg from '../../../assets/trashcan.png';
 import { RootState, AppDispatch } from '../../../redux/store.ts';
-import { addPurchase, postPurchase } from '../../../redux/slices/purchaseSlice.ts';
+import { postPurchase } from '../../../redux/slices/purchaseSlice.ts';
 
 export default function AddOrder() {
   const navigate = useNavigate();
