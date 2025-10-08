@@ -170,7 +170,7 @@ app.post("/api/upload-image", upload.single("image"), async (req, res) => {
   }
 });
 
-app.post('/api/purchase/add', async (req, res) => {
+app.post('/api/purchases', async (req, res) => {
   const { id, date, vendor, receiptImage, items, userId } = req.body;
   
   let isAllItemsValid = true;
@@ -211,6 +211,47 @@ app.post('/api/purchase/add', async (req, res) => {
     console.error('사입내역 추가 오류', error);
     res.status(500).json({ message: '서버 오류' });
   }
+})
+
+app.get('/api/users/:id/purchases', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const [rows] = await db.query(
+        `SELECT 
+          p.purchase_id,
+          p.purchase_no,
+          p.purchase_date,
+          p.vendor_name,
+          p.receipt_image,
+          p.created_at,
+          pr.product_id,
+          pr.product_no,
+          pr.name AS product_name,
+          pr.category,
+          pr.color,
+          pr.size,
+          pr.options,
+          pr.unit_price,
+          pr.quantity,
+          pr.total_price,
+          pr.unreceived_quantity
+        FROM purchases p
+        JOIN products pr ON p.purchase_id = pr.purchase_id
+        WHERE p.user_id = ?
+        ORDER BY p.purchase_date DESC, p.purchase_id DESC;`,
+        [id]
+      )
+
+      console.log(rows);
+
+      return res.status(200).json({
+        message: '사입내역 조회 완료',
+        purchases: rows,
+      })
+    } catch (error) {
+
+    }
 })
 
 app.listen(PORT, () => {

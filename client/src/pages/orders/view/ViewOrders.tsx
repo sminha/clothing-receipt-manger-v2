@@ -109,6 +109,20 @@ export default function ViewOrders() {
   // 검색 결과
   const [isSearchClicked, setIsSearchClicked] = useState(false);
 
+  useEffect(() => {
+    async function fetchPurchases() {
+      if (!userInfo || !userInfo.id) return;
+
+      const resultAction = await dispatch(getPurchases(userInfo.id));
+
+      if (getPurchases.rejected.match(resultAction)) {
+        alert(resultAction.payload || '사입내역 조회 실패');
+      }
+    }
+
+    fetchPurchases();
+  }, [dispatch, userInfo]);
+
   const [tempList, setTempList] = useState(purchaseList);
 
   const listToRender = tempList;

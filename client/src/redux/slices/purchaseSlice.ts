@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { generateTestData } from '../../utils/generateTestData.ts';
 import axios from 'axios';
+import dayjs from 'dayjs';
 
 export interface PurchaseItem {
   itemId: string;
@@ -36,11 +37,65 @@ const initialState: PurchaseState = {
   error: null,
 };
 
+interface Row {
+  purchase_id: number;
+  purchase_no: string;
+  purchase_date: string;
+  vendor_name: string;
+  receipt_image: string;
+  created_at: string;
+  product_id: number;
+  product_no: string;
+  product_name: string;
+  category: string;
+  color: string;
+  size: string;
+  options: string;
+  unit_price: number;
+  quantity: number;
+  total_price: number;
+  unreceived_quantity: number;
+}
+
+function transformPurchases(rows: Row[]): PurchaseRecord[] {
+  const purchaseMap: Record<string, PurchaseRecord> = {};
+
+  rows.forEach(row => {
+    const purchaseId = row.purchase_no.toString();
+
+    if (!purchaseMap[purchaseId]) {
+      purchaseMap[purchaseId] = {
+        id: purchaseId,
+        date: dayjs(row.purchase_date).format('YYYY.MM.DD hh:mm'),
+        createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+        vendor: row.vendor_name,
+        receiptImage: row.receipt_image || "",
+        items: []
+      };
+    }
+
+    purchaseMap[purchaseId].items.push({
+      itemId: row.product_no.toString(),
+      name: row.product_name,
+      category: row.category,
+      color: row.color || "",
+      size: row.size || "",
+      options: row.options || "",
+      unitPrice: row.unit_price,
+      quantity: row.quantity,
+      totalAmount: row.total_price,
+      missingQuantity: row.unreceived_quantity
+    });
+  });
+
+  return Object.values(purchaseMap);
+}
+
 export const postPurchase = createAsyncThunk(
   'purchase/postPurchase',
   async (purchaseInfo: Omit<PurchaseRecord, 'createdAt'> & { userId: number }, { rejectWithValue } ) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/purchase/add', purchaseInfo, {
+      const res = await axios.post('http://localhost:5000/api/purchases', purchaseInfo, {
         headers: { 'Content-Type': 'application/json' },
       })
 
@@ -48,6 +103,24 @@ export const postPurchase = createAsyncThunk(
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         return rejectWithValue(error.response.data.message || '사입내역 추가 실패');
+      }
+      return rejectWithValue('서버 오류');
+    }
+  }
+);
+
+export const getPurchases = createAsyncThunk(
+  'purchase/getPurchases',
+  async (userId: number, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/users/${userId}/purchases`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      return res.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data.message || '사입내역 조회 실패');
       }
       return rejectWithValue('서버 오류');
     }
@@ -116,6 +189,17 @@ const purchaseSlice = createSlice({
         state.status = 'succeeded';
       })
       .addCase(postPurchase.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload as string;
+      })
+      .addCase(getPurchases.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(getPurchases.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.records = transformPurchases(action.payload.purchases || []);
+      })
+      .addCase(getPurchases.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload as string;
       })
