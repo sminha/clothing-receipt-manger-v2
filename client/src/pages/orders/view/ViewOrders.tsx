@@ -17,14 +17,15 @@ import excelImg from '../../../assets/excel.png';
 import receiptImg from '../../../assets/receipt.png';
 import trashcanImg from '../../../assets/trashcan.png';
 import testReceiptImg from '../../../assets/test_receipt.png';
-import { RootState } from '../../../redux/store.ts';
-import { PurchaseItem, PurchaseRecord, updatePurchase, deletePurchase, updateMissingQuantity, deleteProduct } from '../../../redux/slices/purchaseSlice.ts';
+import { RootState, AppDispatch } from '../../../redux/store.ts';
+import { PurchaseItem, PurchaseRecord, updatePurchase, deletePurchase, updateMissingQuantity, deleteProduct, getPurchases } from '../../../redux/slices/purchaseSlice.ts';
 import { useFilteredPurchaseList } from '../../../hooks/useFilteredPurchaseList.ts';
+// import VirtualizedGrid from '../../../components/VirtualizedGrid.tsx';
 
 export default function ViewOrders() {
   const navigate = useNavigate();
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const userInfo = useSelector((state: RootState) => state.user);
   const purchaseList = useSelector((state: RootState) => state.purchase.records);
@@ -35,6 +36,18 @@ export default function ViewOrders() {
   const toggleDropdown = () => {
     setIsDropdownOpen(prev => !prev);
   };
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // 검색
   const [selectedType, setSelectedType] = useState<DateType>('all');
@@ -201,8 +214,6 @@ export default function ViewOrders() {
   // 전체 선택 토글
   const [selected, setSelected] = useState(false);
 
-  const toggleSelected = () => { setSelected(prev => !prev); };
-
   // 행 선택 토글
   interface SelectedRow {
     recordId: string;
@@ -221,6 +232,24 @@ export default function ViewOrders() {
       }
     });
   };
+
+  const toggleSelectAllRows = () => {
+    if (selected) {
+      setSelectedRows([]);
+      setSelected(false);
+    } else {
+      const allRows = getSortedList().map(row => ({
+        recordId: row.recordId,
+        itemId: row.itemId,
+      }));
+      setSelectedRows(allRows);
+      setSelected(true);
+    }
+  };
+
+  // [DEBUGGING]
+  useEffect(() => console.log(purchaseList), []);
+  // useEffect(() => { console.log(selectedRows); console.log(purchaseList) }, [selectedRows, purchaseList]);
 
   // 선택삭제
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
@@ -331,6 +360,8 @@ export default function ViewOrders() {
     setOpenedPurchaseId(purchaseId);
   };
 
+  const [isPurchaseDeleteModalOpen, setIsPurchaseDeleteModalOpen] = useState<boolean>(false);
+
   // 사입번호 수정 모달
   const [openedPurchaseEditId, setOpenedPurchaseEditId] = useState<string | null>(null);
 
@@ -383,29 +414,81 @@ export default function ViewOrders() {
     });
   };
 
-  // const handleAddProduct = () => {
-  //   setEditForm((prev) => {
-  //     if (!prev) return prev;
+  const [openedProductAdd, setOpenedProductAdd] = useState(false);
+  const [newProductForm, setNewProductForm] = useState<PurchaseItem | null>(null);
 
-  //     const newProduct: PurchaseItem = {
-  //       itemId: '',
-  //       name: '',
-  //       category: '',
-  //       color: '',
-  //       size: '',
-  //       options: '',
-  //       unitPrice: 0,
-  //       quantity: 0,
-  //       totalAmount: 0,
-  //       missingQuantity: 0,
-  //     };
+  const handleAddProduct = () => {
+    if (!editForm) return;
 
-  //     return {
-  //       ...prev,
-  //       items: [...prev.items, newProduct],
-  //     };
-  //   });
-  // };
+    // const purchaseDate = new Date(editForm.date);
+    // const purchaseId =
+    //   purchaseDate.getFullYear().toString() +
+    //   String(purchaseDate.getMonth() + 1).padStart(2, "0") +
+    //   String(purchaseDate.getDate()).padStart(2, "0") +
+    //   String(purchaseDate.getHours()).padStart(2, "0") +
+    //   String(purchaseDate.getMinutes()).padStart(2, "0");
+    const purchaseIdNumber = Number(editForm.id) || 0;
+    const purchaseId = String(purchaseIdNumber).padStart(5, '0');
+
+    const existingItems = editForm.items.filter(item =>
+      item.itemId.startsWith(purchaseId)
+    );
+
+    let nextSeq = 1;
+    if (existingItems.length > 0) {
+      const maxSeq = Math.max(
+        ...existingItems.map(item =>
+          parseInt(item.itemId.slice(purchaseId.length), 10)
+        )
+      );
+      nextSeq = maxSeq + 1;
+    }
+
+    const newItemId = `${purchaseId}${String(nextSeq).padStart(3, "0")}`;
+
+    setNewProductForm({
+      itemId: newItemId,
+      name: '',
+      category: '',
+      color: '',
+      size: '',
+      options: '',
+      unitPrice: 0,
+      quantity: 0,
+      totalAmount: 0,
+      missingQuantity: 0,
+    });
+
+    setOpenedProductAdd(true);
+  };
+
+  const handleEditNewProductFieldChange = (field: keyof PurchaseItem, value: string | number) => {
+    if (!newProductForm) return;
+
+    const updatedValue =
+      field === 'unitPrice' || field === 'quantity' || field === 'missingQuantity'
+        ? Number(value)
+        : value;
+
+    let updatedTotalAmount = newProductForm.totalAmount;
+    if (field === 'unitPrice') updatedTotalAmount = Number(value) * newProductForm.quantity;
+    if (field === 'quantity') updatedTotalAmount = newProductForm.unitPrice * Number(value);
+
+    setNewProductForm({
+      ...newProductForm,
+      [field]: updatedValue,
+      totalAmount: updatedTotalAmount,
+    });
+  };
+
+  const handleSaveNewProduct = () => {
+    if (!editForm || !newProductForm) return;
+    setEditForm({
+      ...editForm,
+      items: [...editForm.items, newProductForm],
+    });
+    setOpenedProductAdd(false);
+  };
 
   const handleSaveEditedPurchase = () => {
     if (editForm) {
@@ -418,65 +501,6 @@ export default function ViewOrders() {
   const totalQuantityOfPurchaseEdit = editForm?.items.reduce((sum, item) => sum + Number(item.quantity), 0) ?? 0;
   const totalPriceOfPurchaseEdit = editForm?.items.reduce((sum, item) => sum + Number(item.unitPrice) * Number(item.quantity), 0) ?? 0;
   const totalUnreceivedOfPurchaseEdit = editForm?.items.reduce((sum, item) => sum + Number(item.missingQuantity), 0) ?? 0;
-
-
-
-
-
-
-  // state 추가
-const [openedProductAdd, setOpenedProductAdd] = useState(false);
-const [newProductForm, setNewProductForm] = useState<PurchaseItem | null>(null);
-
-const handleAddProduct = () => {
-  setNewProductForm({
-    itemId: `tmp-${Date.now()}`, // 임시 ID (나중에 서버 저장 시 교체)
-    name: '',
-    category: '',
-    color: '',
-    size: '',
-    options: '',
-    unitPrice: 0,
-    quantity: 0,
-    totalAmount: 0,
-    missingQuantity: 0,
-  });
-  setOpenedProductAdd(true);
-};
-
-const handleEditNewProductFieldChange = (field: keyof PurchaseItem, value: string | number) => {
-  if (!newProductForm) return;
-
-  const updatedValue =
-    field === 'unitPrice' || field === 'quantity' || field === 'missingQuantity'
-      ? Number(value)
-      : value;
-
-  let updatedTotalAmount = newProductForm.totalAmount;
-  if (field === 'unitPrice') updatedTotalAmount = Number(value) * newProductForm.quantity;
-  if (field === 'quantity') updatedTotalAmount = newProductForm.unitPrice * Number(value);
-
-  setNewProductForm({
-    ...newProductForm,
-    [field]: updatedValue,
-    totalAmount: updatedTotalAmount,
-  });
-};
-
-const handleSaveNewProduct = () => {
-  if (!editForm || !newProductForm) return;
-  setEditForm({
-    ...editForm,
-    items: [...editForm.items, newProductForm],
-  });
-  setOpenedProductAdd(false);
-};
-
-
-
-
-
-
 
   // 상품사입번호 모달
   const [openedProductId, setOpenedProductId] = useState<string | null>(null);
@@ -496,6 +520,8 @@ const handleSaveNewProduct = () => {
   const handleProductClick = (productId: string) => {
     setOpenedProductId(productId);
   };
+
+  const [isProductDeleteModalOpen, setIsProductDeleteModalOpen] = useState<boolean>(false);
 
   // 상품사입번호 수정 모달
   const [openedProductEditId, setOpenedProductEditId] = useState<string | null>(null);
@@ -604,8 +630,41 @@ const handleSaveNewProduct = () => {
     }
   }, [selectedProductReservation]);
 
-  // [DEBUGGING]
-  useEffect(() => console.log(purchaseList));
+  // 테이블 스크롤
+  const headerRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const body = bodyRef.current;
+    const header = headerRef.current;
+
+    if (!body || !header) return;
+
+    const handleScroll = () => {
+      header.scrollLeft = body.scrollLeft;
+    };
+
+    body.addEventListener("scroll", handleScroll);
+    return () => {
+      body.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  // 페이지네이션
+  const [itemsPerPage, setItemsPerPage] = useState<number>(100);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(totalItemsCount / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+
+  const handlePrev = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNext = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
 
   return (
     <div className={styles.myPage}>
@@ -623,7 +682,7 @@ const handleSaveNewProduct = () => {
           <img src={profileImg} className={styles.profileImage} />
           <span className={styles.profileName} role="button" onClick={toggleDropdown}>{userInfo.name}님</span>
           {isDropdownOpen && (
-            <div className={styles.dropdown}>
+            <div className={styles.dropdown} ref={dropdownRef}>
               <div className={styles.dropdownItem} onClick={() => navigate('/profile')}>계정정보</div>
               <div className={styles.dropdownItem}>다크모드</div>
               <div className={styles.dropdownItem}>로그아웃</div>
@@ -711,7 +770,6 @@ const handleSaveNewProduct = () => {
                       setSortConfig((prev) => ({ ...prev, key: 'missingQuantity' }));
                       break;
                   }
-                  console.log(sortConfig);
                 }}
               />
               <Dropdown
@@ -719,10 +777,15 @@ const handleSaveNewProduct = () => {
                 width={'80px'}
                 onChange={(selected: string) => {
                   setSortConfig((prev) => ({ ...prev, direction: selected === '오름차순' ? 'asc' : 'desc' }))
-                  console.log(sortConfig); 
                 }}
               />
-              <Dropdown options={['50개씩', '100개씩', '150개씩', '200개씩']} width={'82px'} />
+              <Dropdown
+                options={['50개씩', '100개씩', '150개씩', '200개씩']}
+                width={'82px'}
+                onChange={(selected: string) => {
+                  setItemsPerPage(parseInt(selected, 10));
+                }}
+              />
             </div>
           </div>
           <hr className={styles.resultDivider}/>
@@ -745,146 +808,206 @@ const handleSaveNewProduct = () => {
 
           <div className={styles.resultContent}>
             <div className={styles.tableScrollContainer}>
-              <table className={styles.resultTable}>
-                <thead>
-                  <tr>
-                    <th>
-                      <button
-                        type="button"
-                        className={`${styles.button} ${selected ? styles.selected : ''}`}
-                        onClick={toggleSelected}
-                      >
-                        <span className={styles.checkbox}>
-                          {selected && (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="white"
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                        </span>
-                      </button>
-                    </th>
-                    <th>사입번호</th>
-                    <th>상품사입번호</th>
-                    <th>사입일시</th>
-                    <th>거래처명</th>
-                    <th>상품명</th>
-                    <th>구분</th>
-                    <th>컬러</th>
-                    <th>사이즈</th>
-                    <th>기타옵션</th>
-                    <th>단가</th>
-                    <th>수량</th>
-                    <th>금액합계</th>
-                    <th>미송수량</th>
-                    <th>영수증</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {getSortedList().map((row) => {
-                    const isSelected = selectedRows.some(
-                      r => r.recordId === row.recordId && r.itemId === row.itemId
-                    );
+              <div ref={headerRef} className={styles.headerWrapper}>
+                <table className={styles.resultTable} style={{ marginTop: '10px' }}>
+                  <colgroup>
+                    <col style={{ width: '30px' }} />
+                    <col style={{ width: '130px' }} />
+                    <col style={{ width: '160px' }} />
+                    <col style={{ width: '160px' }} />
+                    <col style={{ width: '140px' }} />
+                    <col style={{ width: '140px' }} />
+                    <col style={{ width: '100px' }} />
+                    <col style={{ width: '100px' }} />
+                    <col style={{ width: '100px' }} />
+                    <col style={{ width: '100px' }} />
+                    <col style={{ width: '80px' }} />
+                    <col style={{ width: '100px' }} />
+                    <col style={{ width: '80px' }} />
+                    <col style={{ width: '100px' }} />
+                    <col style={{ width: '80px' }} />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th>
+                        <button
+                          type="button"
+                          className={`${styles.button} ${selected ? styles.selected : ''}`}
+                          onClick={toggleSelectAllRows}
+                        >
+                          <span className={styles.checkbox}>
+                            {selected && (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="white"
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            )}
+                          </span>
+                        </button>
+                      </th>
+                      <th>사입번호</th>
+                      <th>상품사입번호</th>
+                      <th>사입일시</th>
+                      <th>거래처명</th>
+                      <th>상품명</th>
+                      <th>구분</th>
+                      <th>컬러</th>
+                      <th>사이즈</th>
+                      <th>기타옵션</th>
+                      <th>단가</th>
+                      <th>수량</th>
+                      <th>금액합계</th>
+                      <th>미송수량</th>
+                      <th>영수증</th>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
 
-                    return (
-                      <tr
-                        key={`${row.recordId}-${row.itemId}`}
-                        style={{ backgroundColor: isSelected ? '#efe6e6' : 'transparent' }}
-                      >
-                        <td>
-                          <button
-                            type="button"
-                            className={`${styles.button} ${isSelected ? styles.selected : ''}`}
-                            onClick={() => toggleRowSelection(row.recordId, row.itemId)}
-                          >
-                            <span className={styles.checkbox}>
-                              {isSelected && (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="14"
-                                  height="14"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="white"
-                                  strokeWidth="3"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <polyline points="20 6 9 17 4 12" />
-                                </svg>
-                              )}
+              <div ref={bodyRef} className={styles.bodyWrapper}>
+                <table className={styles.resultTable}>
+                  <colgroup>
+                    <col style={{ width: "30px" }} />
+                    <col style={{ width: "130px" }} />
+                    <col style={{ width: "160px" }} />
+                    <col style={{ width: "160px" }} />
+                    <col style={{ width: "140px" }} />
+                    <col style={{ width: "140px" }} />
+                    <col style={{ width: "100px" }} />
+                    <col style={{ width: "100px" }} />
+                    <col style={{ width: "100px" }} />
+                    <col style={{ width: "100px" }} />
+                    <col style={{ width: "80px" }} />
+                    <col style={{ width: "100px" }} />
+                    <col style={{ width: "80px" }} />
+                    <col style={{ width: "100px" }} />
+                    <col style={{ width: '80px' }} />
+                  </colgroup>
+                  <tbody className={styles.tbodyWrapper}>
+                    {getSortedList().slice(startIndex, endIndex).map((row) => {
+                      const isSelected = selectedRows.some(
+                        r => r.recordId === row.recordId && r.itemId === row.itemId
+                      );
+
+                      return (
+                        <tr
+                          key={`${row.recordId}-${row.itemId}`}
+                          style={{ backgroundColor: isSelected ? '#efe6e6' : 'transparent' }}
+                          role='row'
+                        >
+                          <td>
+                            <button
+                              type="button"
+                              className={`${styles.button} ${isSelected ? styles.selected : ''}`}
+                              onClick={() => toggleRowSelection(row.recordId, row.itemId)}
+                            >
+                              <span className={styles.checkbox}>
+                                {isSelected && (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="white"
+                                    strokeWidth="3"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <polyline points="20 6 9 17 4 12" />
+                                  </svg>
+                                )}
+                              </span>
+                            </button>
+                          </td>
+                          <td>
+                            <span
+                              className={styles.textButton}
+                              role="button"
+                              onClick={() => handlePurchaseClick(row.recordId)}
+                            >
+                              {row.recordId}
                             </span>
-                          </button>
-                        </td>
-                        <td>
-                          <span
-                            className={styles.textButton}
-                            role="button"
-                            onClick={() => handlePurchaseClick(row.recordId)}
-                          >
-                            {row.recordId}
-                          </span>
-                        </td>
-                        <td>
-                          <span
-                            className={styles.textButton}
-                            role="button"
-                            onClick={() => handleProductClick(row.itemId)}
-                          >
-                            {row.itemId}
-                          </span>
-                        </td>
-                        <td>{row.date.replace(/-/g, '.').replace('T', ' ')}</td>
-                        <td>{row.vendor}</td>
-                        <td>{row.name}</td>
-                        <td>{row.category}</td>
-                        <td>{row.color}</td>
-                        <td>{row.size}</td>
-                        <td>{row.options || '-'}</td>
-                        <td>{row.unitPrice.toLocaleString()}</td>
-                        <td>{row.quantity}</td>
-                        <td>{row.totalAmount.toLocaleString()}</td>
-                        <td>
-                          <span
-                            className={styles.textButton}
-                            role="button"
-                            onClick={() => handleProductReservationClick(row.itemId)}
-                          >
-                            {row.missingQuantity}
-                          </span>
-                        </td>
-                        <td>
-                          <img
-                            src={receiptImg}
-                            className={styles.receiptImg}
-                            onClick={() => handleReceiptClick(row.recordId)}
-                          />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          </td>
+                          <td>
+                            <span
+                              className={styles.textButton}
+                              role="button"
+                              onClick={() => handleProductClick(row.itemId)}
+                            >
+                              {row.itemId}
+                            </span>
+                          </td>
+                          {/* <td>{row.date.replace(/-/g, '.').replace('T', ' ')}</td> */}
+                          <td>{row.date}</td>
+                          <td>{row.vendor}</td>
+                          <td>{row.name}</td>
+                          <td>{row.category}</td>
+                          <td>{row.color || '-'}</td>
+                          <td>{row.size || '-'}</td>
+                          <td>{row.options || '-'}</td>
+                          <td>{row.unitPrice.toLocaleString()}</td>
+                          <td>{row.quantity}</td>
+                          <td>{row.totalAmount.toLocaleString()}</td>
+                          <td>
+                            <span
+                              className={styles.textButton}
+                              role="button"
+                              onClick={() => handleProductReservationClick(row.itemId)}
+                            >
+                              {row.missingQuantity}
+                            </span>
+                          </td>
+                          <td>
+                            <img
+                              src={receiptImg}
+                              className={styles.receiptImg}
+                              onClick={() => handleReceiptClick(row.recordId)}
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                {/* <VirtualizedGrid
+                  data={getSortedList().slice(startIndex, endIndex)}
+                  selectedRows={selectedRows}
+                  toggleRowSelection={toggleRowSelection}
+                  handlePurchaseClick={handlePurchaseClick}
+                  handleProductClick={handleProductClick}
+                  handleProductReservationClick={handleProductReservationClick}
+                  handleReceiptClick={handleReceiptClick}
+                  receiptImg={receiptImg}
+                  toggleSelectAllRows={toggleSelectAllRows}
+                  selectedAll={selected}
+                  outerRef={bodyRef}
+                /> */}
+              </div>
             </div>
             <div className={styles.pagination}>
-              <button className={styles.pageButton}>
+              <button className={styles.pageButton} onClick={handlePrev} disabled={currentPage === 1}>
                 <FaChevronLeft size={10} />
               </button>
-              <button className={`${styles.pageButton} ${styles.active}`}>1</button>
-              <button className={styles.pageButton}>2</button>
-              <button className={styles.pageButton}>3</button>
-              <span className={styles.ellipsis}>⋅⋅⋅</span>
-              <button className={styles.pageButton}>10</button>
-              <button className={styles.pageButton}>
+              {Array.from({ length: totalPages }, (_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentPage(idx + 1)}
+                  className={currentPage === idx + 1 ? `${styles.activeButton}` : `${styles.pageButton}`}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+              <button className={styles.pageButton} onClick={handleNext} disabled={currentPage === totalPages}>
                 <FaChevronRight size={10} />  
               </button>
             </div>
@@ -920,6 +1043,7 @@ const handleSaveNewProduct = () => {
                 onClick={() => {
                   handleDeleteSelectedProducts();
                   setIsDeleteModalOpen(false);
+                  setSelectedRows([]);
                 }}
               >
                 확인
@@ -957,6 +1081,7 @@ const handleSaveNewProduct = () => {
                 onClick={() => {
                   handleMissingQuantity();
                   setIsUnreceivedModalOpen(false);
+                  setSelectedRows([]);
                 }}
               >
                 확인
@@ -966,6 +1091,7 @@ const handleSaveNewProduct = () => {
         </div>
       )}
 
+      {/* [사입내역 조회] */}
       {openedPurchaseId !== null && (() => {
         const selectedPurchase = purchaseList.find(p => p.id === openedPurchaseId);
         if (!selectedPurchase) return null;
@@ -1054,7 +1180,8 @@ const handleSaveNewProduct = () => {
                 <button
                   className={styles.deleteButton} 
                   onClick={() => {
-                    dispatch(deletePurchase(openedPurchaseId));
+                    // dispatch(deletePurchase(openedPurchaseId));
+                    setIsPurchaseDeleteModalOpen(true);
                   }}
                 >
                   삭제
@@ -1074,6 +1201,45 @@ const handleSaveNewProduct = () => {
         );
       })()}
 
+      {/* [사입내역 삭제] */}
+      {isPurchaseDeleteModalOpen && openedPurchaseId && (
+        <div className={styles.modalOverlay} onClick={() => setIsPurchaseDeleteModalOpen(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={{ width: '280px' }}>
+            <div className={styles.modalHeader}>
+              <span className={styles.periodTitle}></span>
+              <button
+                className={styles.closeButton}
+                onClick={() => setIsPurchaseDeleteModalOpen(false)}
+                aria-label="모달 닫기"
+              >
+                &times;
+              </button>
+            </div>
+            <div className={styles.periodContent}>
+              <span>해당 사입내역을 삭제하시겠습니까?</span>
+            </div>
+            <div className={styles.modalButton} style={{ justifyContent: 'center' }}>
+              <button
+                className={styles.deleteButton} 
+                onClick={() => setIsPurchaseDeleteModalOpen(false)}
+              >
+                취소
+              </button>
+              <button
+                className={styles.editButton}
+                onClick={() => {
+                  dispatch(deletePurchase(openedPurchaseId));
+                  setIsPurchaseDeleteModalOpen(false);
+                }}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* [사입내역 수정] */}
       {openedPurchaseEditId !== null && (
         <div className={styles.modalOverlay}  onClick={() => setOpenedPurchaseEditId(null)}>
           <div className={styles.modalContent}  onClick={(e) => e.stopPropagation()}>
@@ -1125,20 +1291,6 @@ const handleSaveNewProduct = () => {
                 <tbody>
                   {editForm?.items.map((_, idx) => (
                     <tr key={idx}>
-                      {/* <td className={styles.editCell}>
-                        <button
-                          className={styles.productEditButton}
-                          // onClick={() => handleEdit(idx)}
-                        >
-                          <img src={editImg} className={styles.editImage} />
-                        </button>
-                        <span
-                          className={styles.textButton}
-                          style={{ fontSize: '14px', cursor: 'default' }}
-                        >
-                          {editForm?.items[idx].itemId}
-                        </span>
-                      </td> */}
                       <td className={styles.addInputRow}>
                         <span className={styles.textButton} style={{ fontSize: '14px', cursor: 'default' }}>{editForm?.items[idx].itemId}</span>
                       </td>
@@ -1184,12 +1336,6 @@ const handleSaveNewProduct = () => {
                         >
                           <img src={trashcanImg} className={styles.trashcanImage} />
                         </button>
-                        {/* <button
-                          className={styles.productEditButton}
-                          // onClick={() => handleEdit(idx)}
-                        >
-                          <img src={editImg} className={styles.editImage} />
-                        </button> */}
                       </td>
                     </tr>
                   ))}
@@ -1239,83 +1385,167 @@ const handleSaveNewProduct = () => {
         </div>
       )}
 
-
-
-
-
-
-{openedProductAdd && newProductForm && editForm && (
-  <div className={styles.modalOverlay} onClick={() => setOpenedProductAdd(false)}>
-    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-      <div className={styles.modalHeader}>
-        <span className={styles.periodTitle}>상품 추가하기</span>
-        <button
-          className={styles.closeButton}
-          onClick={() => setOpenedProductAdd(false)}
-          aria-label="모달 닫기"
-        >
-          &times;
-        </button>
-      </div>
-
-      {/* editForm.id, editForm.vendor, editForm.date 정보만 보여줌 */}
-      <div className={styles.purchase}>
-        <div className={styles.firstPurchaseRow}>
-          <span className={styles.purchaseRowTitle}>사입번호</span>
-          <span className={styles.textButton} style={{ fontSize: '14px', cursor: 'default' }}>{editForm.id}</span>
+      {/* [상품 추가하기] */}
+      {openedProductAdd && newProductForm && editForm && (
+        <div className={styles.modalOverlay} onClick={() => setOpenedProductAdd(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <span className={styles.periodTitle}>상품 추가하기</span>
+              <button
+                className={styles.closeButton}
+                onClick={() => setOpenedProductAdd(false)}
+                aria-label="모달 닫기"
+              >
+                &times;
+              </button>
+            </div>
+            <div className={styles.purchase}>
+              <div className={styles.firstPurchaseRow}>
+                <span className={styles.purchaseRowTitle}>사입번호</span>
+                <span className={styles.textButton} style={{ fontSize: '14px', cursor: 'default' }}>{editForm.id}</span>
+              </div>
+              <div className={styles.purchaseRow}>
+                <span className={styles.purchaseRowTitle}>상품사입번호</span>
+                <span className={styles.textButton} style={{ fontSize: '14px', cursor: 'default' }}>
+                  {newProductForm.itemId}
+                </span>
+              </div>
+              <div className={styles.purchaseRow}>
+                <span className={styles.purchaseRowTitle}>사입일시</span>
+                <span className={styles.purchaseRowContent}>{editForm.date.replace('T', ' ').replace(/-/g, '.')}</span>
+              </div>
+              <div className={styles.purchaseRow}>
+                <span className={styles.purchaseRowTitle}>거래처명</span>
+                <span className={styles.purchaseRowContent}>{editForm.vendor}</span>
+              </div>
+              <div className={styles.purchaseRow}>
+                <span className={styles.purchaseRowTitle}>상품명</span>
+                <input
+                  className={styles.productEditInput}
+                  value={newProductForm.name}
+                  onChange={(e) => handleEditNewProductFieldChange('name', e.target.value)}
+                />
+              </div>
+            </div>
+            <div className={styles.product}>
+              <div className={styles.purchaseRow}>
+                <span className={styles.purchaseRowTitle}>구분</span>
+                <div className={styles.purchaseRowContent}>
+                  <input
+                    className={styles.purchaseEditInput}
+                    value={newProductForm.category}
+                    onChange={(e) => handleEditNewProductFieldChange('category', e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className={styles.purchaseRow}>
+                <span className={styles.purchaseRowTitle}>컬러</span>
+                <div className={styles.purchaseRowContent}>
+                  <input
+                    className={styles.purchaseEditInput}
+                    value={newProductForm.color}
+                    onChange={(e) => handleEditNewProductFieldChange('color', e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className={styles.product}>
+              <div className={styles.purchaseRow}>
+                <span className={styles.purchaseRowTitle}>사이즈</span>
+                <div className={styles.purchaseRowContent}>
+                  <input
+                    className={styles.purchaseEditInput}
+                    value={newProductForm.size}
+                    onChange={(e) => handleEditNewProductFieldChange('size', e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className={styles.purchaseRow}>
+                <span className={styles.purchaseRowTitle}>기타옵션</span>
+                <div className={styles.purchaseRowContent}>
+                  <input
+                    className={styles.purchaseEditInput}
+                    value={newProductForm.options}
+                    onChange={(e) => handleEditNewProductFieldChange('options', e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className={styles.product}>
+              <div className={styles.purchaseRow}>
+                <span className={styles.purchaseRowTitle}>단가</span>
+                <div className={styles.purchaseRowContent}>
+                  <input
+                    className={styles.purchaseEditInput}
+                    value={newProductForm.unitPrice}
+                    onChange={(e) => handleEditNewProductFieldChange('unitPrice', e.target.value)}
+                  />
+                </div>
+                <div className={styles.unitWrapper}>
+                  <span className={styles.unit}>원</span>
+                </div>
+              </div>
+              <div className={styles.purchaseRow}>
+                <span className={styles.purchaseRowTitle}>수량</span>
+                <div className={styles.purchaseRowContent}>
+                  <input
+                    className={styles.purchaseEditInput}
+                    value={newProductForm.quantity}
+                    onChange={(e) => handleEditNewProductFieldChange('quantity', e.target.value)}
+                  />
+                </div>
+                <div className={styles.unitWrapper}>
+                  <span className={styles.unit}>개</span>
+                </div>
+              </div>
+            </div>
+            <div className={styles.product}>
+              <div className={styles.purchaseRow}>
+                <span className={styles.purchaseRowTitle}>금액합계</span>
+                <div className={styles.purchaseRowContent}>
+                  <input
+                    className={styles.purchaseEditInput}
+                    value={newProductForm.totalAmount}
+                    onChange={(e) => handleEditNewProductFieldChange('totalAmount', e.target.value)}
+                  />
+                </div>
+                <div className={styles.unitWrapper}>
+                  <span className={styles.unit}>원</span>
+                </div>
+              </div>
+              <div className={styles.purchaseRow}>
+                <span className={styles.purchaseRowTitle}>미송수량</span>
+                <div className={styles.purchaseRowContent}>
+                  <input
+                    className={styles.purchaseEditInput}
+                    value={newProductForm.missingQuantity}
+                    onChange={(e) => handleEditNewProductFieldChange('missingQuantity', e.target.value)}
+                  />
+                </div>
+                <div className={styles.unitWrapper}>
+                  <span className={styles.unit}>개</span>
+                </div>
+              </div>
+            </div>
+            <div className={styles.modalButton}>
+              <button
+                className={styles.deleteButton}
+                onClick={() => setOpenedProductAdd(false)}
+              >
+                취소
+              </button>
+              <button
+                className={styles.editButton}
+                onClick={handleSaveNewProduct}
+              >
+                완료
+              </button>
+            </div>
+          </div>
         </div>
-        <div className={styles.purchaseRow}>
-          <span className={styles.purchaseRowTitle}>사입일시</span>
-          <span className={styles.purchaseRowContent}>{editForm.date.replace('T', ' ').replace(/-/g, '.')}</span>
-                    {/* {selectedPurchase.date.replace('T', ' ').replace(/-/g, '.')} */}
+      )}
 
-        </div>
-        <div className={styles.purchaseRow}>
-          <span className={styles.purchaseRowTitle}>거래처명</span>
-          <span className={styles.purchaseRowContent}>{editForm.vendor}</span>
-        </div>
-      </div>
-
-      {/* 상품 입력 폼 (상품 수정 모달과 동일) */}
-      <div className={styles.product}>
-        <div className={styles.purchaseRow}>
-          <span className={styles.purchaseRowTitle}>상품명</span>
-          <input
-            className={styles.productEditInput}
-            value={newProductForm.name}
-            onChange={(e) => handleEditNewProductFieldChange('name', e.target.value)}
-          />
-        </div>
-        {/* category, color, size, options, unitPrice, quantity, missingQuantity 등 동일하게 배치 */}
-      </div>
-
-      <div className={styles.modalButton}>
-        <button
-          className={styles.deleteButton}
-          onClick={() => setOpenedProductAdd(false)}
-        >
-          취소
-        </button>
-        <button
-          className={styles.editButton}
-          onClick={handleSaveNewProduct}
-        >
-          완료
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
-
-
-
-
-
-
-
-
+      {/* [상품별 사입내역 조회] */}
       {openedProductId && selectedProduct && (
         <div className={styles.modalOverlay} onClick={() => setOpenedProductId(null)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -1401,7 +1631,8 @@ const handleSaveNewProduct = () => {
               <button
                 className={styles.deleteButton}
                 onClick={() => {
-                  dispatch(deleteProduct({ recordId: selectedProduct.purchase.id, itemId: selectedProduct.product.itemId }))
+                  // dispatch(deleteProduct({ recordId: selectedProduct.purchase.id, itemId: selectedProduct.product.itemId }))
+                  setIsProductDeleteModalOpen(true);
                 }}
               >
                 삭제
@@ -1421,6 +1652,45 @@ const handleSaveNewProduct = () => {
         </div>
       )}
 
+      {/* [상품별 사입내역 삭제] */}
+      {isProductDeleteModalOpen && selectedProduct && (
+        <div className={styles.modalOverlay} onClick={() => setIsProductDeleteModalOpen(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={{ width: '280px' }}>
+            <div className={styles.modalHeader}>
+              <span className={styles.periodTitle}></span>
+              <button
+                className={styles.closeButton}
+                onClick={() => setIsProductDeleteModalOpen(false)}
+                aria-label="모달 닫기"
+              >
+                &times;
+              </button>
+            </div>
+            <div className={styles.periodContent}>
+              <span>해당 상품을 삭제하시겠습니까?</span>
+            </div>
+            <div className={styles.modalButton} style={{ justifyContent: 'center' }}>
+              <button
+                className={styles.deleteButton} 
+                onClick={() => setIsProductDeleteModalOpen(false)}
+              >
+                취소
+              </button>
+              <button
+                className={styles.editButton}
+                onClick={() => {
+                  dispatch(deleteProduct({ recordId: selectedProduct.purchase.id, itemId: selectedProduct.product.itemId }))
+                  setIsProductDeleteModalOpen(false);
+                }}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* [상품별 사입내역 ] */}
       {openedProductEditId !== null && editProductForm && editPurchaseInfo && (
         <div className={styles.modalOverlay} onClick={() => setOpenedProductEditId(null)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -1437,30 +1707,19 @@ const handleSaveNewProduct = () => {
             <div className={styles.purchase}>
               <div className={styles.firstPurchaseRow}>
                 <span className={styles.purchaseRowTitle}>사입번호</span>
-                <span className={styles.textButton} style={{ fontSize: '14px', cursor: 'default', /*marginTop: '7px', marginBottom: '7px'*/ }}>{editPurchaseInfo.id}</span>
+                <span className={styles.textButton} style={{ fontSize: '14px', cursor: 'default' }}>{editPurchaseInfo.id}</span>
               </div>
               <div className={styles.purchaseRow}>
                 <span className={styles.purchaseRowTitle}>상품사입번호</span>
-                <span className={styles.textButton} style={{ fontSize: '14px', cursor: 'default', /*marginTop: '7px', marginBottom: '7px'*/ }}>{openedProductEditId}</span>
+                <span className={styles.textButton} style={{ fontSize: '14px', cursor: 'default' }}>{openedProductEditId}</span>
               </div>
               <div className={styles.purchaseRow}>
                 <span className={styles.purchaseRowTitle}>사입일시</span>
-                {/* <input
-                  type="datetime-local"
-                  className={styles.productEditInput}
-                  value={editPurchaseInfo.date}
-                  onChange={(e) => setEditPurchaseInfo({ ...editPurchaseInfo, date: e.target.value })}
-                /> */}
-                <span className={styles.purchaseRowContent} style={{ fontSize: '14px', /*marginTop: '7px', marginBottom: '7px'*/ }}>{editPurchaseInfo.date.replace('-', '.').replace('-', '.').replace('T', ' ')}</span>
+                <span className={styles.purchaseRowContent} style={{ fontSize: '14px' }}>{editPurchaseInfo.date.replace('-', '.').replace('-', '.').replace('T', ' ')}</span>
               </div>
               <div className={styles.purchaseRow}>
                 <span className={styles.purchaseRowTitle}>거래처명</span>
-                {/* <input
-                  className={styles.productEditInput}
-                  value={editPurchaseInfo.vendor}
-                  onChange={(e) => setEditPurchaseInfo({ ...editPurchaseInfo, vendor: e.target.value })}
-                /> */}
-                <span className={styles.purchaseRowContent} style={{ fontSize: '14px', /*marginTop: '7px', marginBottom: '7px'*/ }}>{editPurchaseInfo.vendor}</span>
+                <span className={styles.purchaseRowContent} style={{ fontSize: '14px' }}>{editPurchaseInfo.vendor}</span>
               </div>
               <div className={styles.purchaseRow}>
                 <span className={styles.purchaseRowTitle}>상품명</span>
