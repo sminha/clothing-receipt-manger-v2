@@ -1,5 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { generateTestData } from '../../utils/generateTestData.ts';
+import axios from 'axios';
 
 export interface PurchaseItem {
   itemId: string;
@@ -25,11 +26,33 @@ export interface PurchaseRecord {
 
 interface PurchaseState {
   records: PurchaseRecord[];
+  status: 'idle' | 'loading' | 'succeeded' | 'failed' ;
+  error: string | null;
 }
 
 const initialState: PurchaseState = {
   records: [],
+  status: 'idle',
+  error: null,
 };
+
+export const postPurchase = createAsyncThunk(
+  'purchase/postPurchase',
+  async (purchaseInfo: Omit<PurchaseRecord, 'createdAt'> & { userId: number }, { rejectWithValue } ) => {
+    try {
+      const res = await axios.post('http://localhost:5000/api/purchase/add', purchaseInfo, {
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      return res.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data.message || '사입내역 추가 실패');
+      }
+      return rejectWithValue('서버 오류');
+    }
+  }
+);
 
 const purchaseSlice = createSlice({
   name: 'purchase',
@@ -83,6 +106,19 @@ const purchaseSlice = createSlice({
     setTestData(state, action: PayloadAction<number>) {
       state.records = generateTestData(action.payload);
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(postPurchase.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(postPurchase.fulfilled, (state) => {
+        state.status = 'succeeded';
+      })
+      .addCase(postPurchase.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload as string;
+      })
   },
 });
 

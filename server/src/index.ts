@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import multer from "multer";
 import axios from "axios";
 import db from "./config/db";
+import type { ResultSetHeader } from 'mysql2';
 
 dotenv.config();
 
@@ -17,6 +18,19 @@ app.use(bodyParser.json());
 const upload = multer();
 
 const apiKey = process.env.API_KEY;
+
+interface PurchaseItem {
+  itemId: string;
+  name: string;
+  category: string;
+  color: string;
+  size: string;
+  options: string;
+  unitPrice: number;
+  quantity: number;
+  totalAmount: number;
+  missingQuantity: number;
+}
 
 async function detectTextFromImage(imageBuffer: Buffer) {
   const url = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
@@ -155,6 +169,49 @@ app.post("/api/upload-image", upload.single("image"), async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+app.post('/api/purchase/add', async (req, res) => {
+  const { id, date, vendor, receiptImage, items, userId } = req.body;
+  
+  let isAllItemsValid = true;
+  for (const i of items) {
+    if (
+      typeof i.name !== "string" || i.name.trim() === "" ||
+      typeof i.category !== "string" || i.category.trim() === "" ||
+      typeof i.unitPrice !== "number" || i.unitPrice <= 0 ||
+      typeof i.quantity !== "number" || i.quantity <= 0 ||
+      typeof i.unreceived_quantity !== "number" || i.unreceived_quantity < 0
+    ) {
+      isAllItemsValid = false;
+      break;
+    }
+  }
+
+  if (!id || !date || !vendor || /* !receiptImage || */ !isAllItemsValid || !userId) {
+    return res.status(400).json({ message: '필수 필드가 누락되었습니다.' });
+  }
+
+  try {
+    const [result] = await db.query(
+      'INSERT INTO purchases (purchase_no, user_id, purchase_date, vendor_name, receipt_image) VALUES (?, ?, ?, ?, ?)',
+      [id, userId, date, vendor, receiptImage]
+    );
+
+    const insertResult = result as ResultSetHeader;
+
+    for (const item of items) {
+      await db.query(
+        'INSERT INTO products (product_no, purchase_id, name, category, color, size, options, unit_price, quantity, unreceived_quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [item.itemId, insertResult.insertId, item.name, item.category, item.color, item.size, item.options, item.unitPrice, item.quantity, item.missingQuantity]
+      );
+    }
+
+    res.status(200).json({ message: '사입내역 추가 완료' });
+  } catch (error) {
+    console.error('사입내역 추가 오류', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+})
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

@@ -5,15 +5,15 @@ import styles from './AddOrder.module.css';
 import buttonPng from '../../../assets/button.png';
 import profileImg from '../../../assets/profileImage.jpg';
 import trashcanImg from '../../../assets/trashcan.png';
-import { RootState } from '../../../redux/store.ts';
-import { addPurchase } from '../../../redux/slices/purchaseSlice.ts';
+import { RootState, AppDispatch } from '../../../redux/store.ts';
+import { addPurchase, postPurchase } from '../../../redux/slices/purchaseSlice.ts';
 
 export default function AddOrder() {
   const navigate = useNavigate();
-
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const userInfo = useSelector((state: RootState) => state.user);
+  const lastPurchase = useSelector((state: RootState) => state.purchase.records).slice(-1)[0];
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [productList, setProductList] = useState([
@@ -49,6 +49,7 @@ export default function AddOrder() {
   };
 
   const handleDelete = (index: number) => {
+    if (productList.length === 1) return;
     setProductList((prevList) => prevList.filter((_, i) => i !== index));
   };
 
@@ -67,22 +68,28 @@ export default function AddOrder() {
     setProductList(prev => [...prev, newProduct]);
   };
 
-  const handleAddPurchase = () => {
+  const handleAddPurchase = async () => {
     if (!purchaseDate || !vendorName || productList.length === 0) {
       alert('사입일시, 거래처명, 상품정보를 모두 입력해주세요.');
       return;
     }
 
-    const idBase = purchaseDate.replace(/[-:T]/g, '').slice(0, 12);
+    if (!userInfo || userInfo.id === null) {
+      alert('로그인 정보가 없습니다.');
+      return;
+    }
+
+    const lastId = lastPurchase ? Number(lastPurchase.id) : 0;
+    const newPurchaseId = String(lastId + 1).padStart(5, '0');
 
     const purchaseRecord = {
-      id: idBase,
+      id: newPurchaseId,
       date: purchaseDate,
-      createdAt: new Date().toISOString(),
+      // createdAt: new Date().toISOString(),
       vendor: vendorName,
       receiptImage: '',
       items: productList.map((item, idx) => ({
-        itemId: `${idBase}${String(idx + 1).padStart(3, '0')}`,
+        itemId: `${newPurchaseId}${String(idx + 1).padStart(3, '0')}`,
         name: item.name,
         category: item.category,
         color: item.color,
@@ -93,10 +100,16 @@ export default function AddOrder() {
         totalAmount: Number(item.unitPrice) * Number(item.quantity),
         missingQuantity: Number(item.unreceived),
       })),
+      userId: userInfo.id,
     };
 
-    dispatch(addPurchase(purchaseRecord));
-    navigate('/view');
+    const resultAction = await dispatch(postPurchase(purchaseRecord));
+    
+    if (postPurchase.fulfilled.match(resultAction)) {
+      navigate('/view');
+    } else {
+      alert(resultAction.payload || '사입내역 추가 실패');
+    }
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -409,7 +422,7 @@ export default function AddOrder() {
           </div>
         </div>
         <div className={styles.addPurchaseButtonWrapper}>
-          <button className={styles.addPurchaseButton} onClick={handleAddPurchase}>추가하기</button>
+          <button className={styles.addPurchaseButton} onClick={() => handleAddPurchase()}>추가하기</button>
         </div>
       </div>
     </div>
