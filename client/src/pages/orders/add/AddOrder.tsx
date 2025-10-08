@@ -267,7 +267,7 @@ export default function AddOrder() {
         </div>
         <div className={styles.addWrapper}>
           <div className={styles.addRow}>
-            <span className={styles.addTitle}>사입일시</span>
+            <span className={styles.addTitle}>사입일시<span className={styles.necessary}> *</span></span>
             <input
               type="datetime-local"
               className={styles.addInput}
@@ -277,7 +277,7 @@ export default function AddOrder() {
           </div>
 
           <div className={styles.addRow}>
-            <span className={styles.addTitle}>거래처명</span>
+            <span className={styles.addTitle}>거래처명<span className={styles.necessary}> *</span></span>
             <input
               className={styles.addInput}
               value={vendorName}
@@ -291,15 +291,15 @@ export default function AddOrder() {
               <table className={styles.productTable}>
                 <thead>
                   <tr>
-                    <th>상품명</th>
-                    <th>구분</th>
+                    <th>상품명<span className={styles.necessary}> *</span></th>
+                    <th>구분<span className={styles.necessary}> *</span></th>
                     <th>컬러</th>
                     <th>사이즈</th>
                     <th>기타옵션</th>
-                    <th>단가</th>
-                    <th>수량</th>
+                    <th>단가<span className={styles.necessary}> *</span></th>
+                    <th>수량<span className={styles.necessary}> *</span></th>
                     <th>금액합계</th>
-                    <th>미송수량</th>
+                    <th>미송수량<span className={styles.necessary}> *</span></th>
                   </tr>
                 </thead>
                 <tbody>

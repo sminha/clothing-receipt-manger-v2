@@ -219,6 +219,10 @@
   width: 80px;
 }
 
+.necessary {
+  color: red;
+}
+
 .addLongInput {
   width: 310px;
   height: 30px;
@@ -344,6 +348,7 @@
   justify-content: center;
   width: 1410px;
   padding-left: 20px;
+  padding-bottom: 20px;
 }
 
 .addPurchaseButton {
