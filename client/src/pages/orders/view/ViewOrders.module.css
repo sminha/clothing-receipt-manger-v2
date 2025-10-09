@@ -574,6 +574,10 @@
   color: #686868;
 }
 
+.necessary {
+  color: red;
+}
+
 .productTable {
   width: 99%;
   table-layout: auto;

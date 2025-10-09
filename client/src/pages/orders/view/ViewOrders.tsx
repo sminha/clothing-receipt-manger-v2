@@ -1259,7 +1259,7 @@ export default function ViewOrders() {
                 <span className={styles.textButton} style={{ fontSize: '14px', cursor: 'default' }}>{openedPurchaseEditId}</span>
               </div>
               <div className={styles.purchaseRow}>
-                <span className={styles.purchaseRowTitle}>사입일시</span>
+                <span className={styles.purchaseRowTitle}>사입일시<span className={styles.necessary}> *</span></span>
                 <input
                   type="datetime-local"
                   className={styles.productEditInput}
@@ -1268,7 +1268,7 @@ export default function ViewOrders() {
                 />
               </div>
               <div className={styles.purchaseRow} style={{ marginBottom: '12px' }}>
-                <span className={styles.purchaseRowTitle}>거래처명</span>
+                <span className={styles.purchaseRowTitle}>거래처명<span className={styles.necessary}> *</span></span>
                 <input
                   className={styles.productEditInput}
                   value={editForm?.vendor ?? ''}
@@ -1281,11 +1281,11 @@ export default function ViewOrders() {
                 <thead className={styles.productHeader}>
                   <tr>
                     <th>상품사입번호</th>
-                    <th>상품명</th>
-                    <th>단가</th>
-                    <th>수량</th>
+                    <th>상품명<span className={styles.necessary}> *</span></th>
+                    <th>단가<span className={styles.necessary}> *</span></th>
+                    <th>수량<span className={styles.necessary}> *</span></th>
                     <th>금액합계</th>
-                    <th>미송수량</th>
+                    <th>미송수량<span className={styles.necessary}> *</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1419,7 +1419,7 @@ export default function ViewOrders() {
                 <span className={styles.purchaseRowContent}>{editForm.vendor}</span>
               </div>
               <div className={styles.purchaseRow}>
-                <span className={styles.purchaseRowTitle}>상품명</span>
+                <span className={styles.purchaseRowTitle}>상품명<span className={styles.necessary}> *</span></span>
                 <input
                   className={styles.productEditInput}
                   value={newProductForm.name}
@@ -1429,7 +1429,7 @@ export default function ViewOrders() {
             </div>
             <div className={styles.product}>
               <div className={styles.purchaseRow}>
-                <span className={styles.purchaseRowTitle}>구분</span>
+                <span className={styles.purchaseRowTitle}>구분<span className={styles.necessary}> *</span></span>
                 <div className={styles.purchaseRowContent}>
                   <input
                     className={styles.purchaseEditInput}
@@ -1473,7 +1473,7 @@ export default function ViewOrders() {
             </div>
             <div className={styles.product}>
               <div className={styles.purchaseRow}>
-                <span className={styles.purchaseRowTitle}>단가</span>
+                <span className={styles.purchaseRowTitle}>단가<span className={styles.necessary}> *</span></span>
                 <div className={styles.purchaseRowContent}>
                   <input
                     className={styles.purchaseEditInput}
@@ -1486,7 +1486,7 @@ export default function ViewOrders() {
                 </div>
               </div>
               <div className={styles.purchaseRow}>
-                <span className={styles.purchaseRowTitle}>수량</span>
+                <span className={styles.purchaseRowTitle}>수량<span className={styles.necessary}> *</span></span>
                 <div className={styles.purchaseRowContent}>
                   <input
                     className={styles.purchaseEditInput}
@@ -1514,7 +1514,7 @@ export default function ViewOrders() {
                 </div>
               </div>
               <div className={styles.purchaseRow}>
-                <span className={styles.purchaseRowTitle}>미송수량</span>
+                <span className={styles.purchaseRowTitle}>미송수량<span className={styles.necessary}> *</span></span>
                 <div className={styles.purchaseRowContent}>
                   <input
                     className={styles.purchaseEditInput}
@@ -1722,7 +1722,7 @@ export default function ViewOrders() {
                 <span className={styles.purchaseRowContent} style={{ fontSize: '14px' }}>{editPurchaseInfo.vendor}</span>
               </div>
               <div className={styles.purchaseRow}>
-                <span className={styles.purchaseRowTitle}>상품명</span>
+                <span className={styles.purchaseRowTitle}>상품명<span className={styles.necessary}> *</span></span>
                 <input
                   className={styles.productEditInput}
                   value={editProductForm?.name ?? ''}
@@ -1732,7 +1732,7 @@ export default function ViewOrders() {
             </div>
             <div className={styles.product}>
               <div className={styles.purchaseRow}>
-                <span className={styles.purchaseRowTitle}>구분</span>
+                <span className={styles.purchaseRowTitle}>구분<span className={styles.necessary}> *</span></span>
                 <div className={styles.purchaseRowContent}>
                   <input
                     className={styles.purchaseEditInput}
@@ -1776,7 +1776,7 @@ export default function ViewOrders() {
             </div>
             <div className={styles.product}>
               <div className={styles.purchaseRow}>
-                <span className={styles.purchaseRowTitle}>단가</span>
+                <span className={styles.purchaseRowTitle}>단가<span className={styles.necessary}> *</span></span>
                 <div className={styles.purchaseRowContent}>
                   <input
                     className={styles.purchaseEditInput}
@@ -1789,7 +1789,7 @@ export default function ViewOrders() {
                 </div>
               </div>
               <div className={styles.purchaseRow}>
-                <span className={styles.purchaseRowTitle}>수량</span>
+                <span className={styles.purchaseRowTitle}>수량<span className={styles.necessary}> *</span></span>
                 <div className={styles.purchaseRowContent}>
                   <input
                     className={styles.purchaseEditInput}
@@ -1817,7 +1817,7 @@ export default function ViewOrders() {
                 </div>
               </div>
               <div className={styles.purchaseRow}>
-                <span className={styles.purchaseRowTitle}>미송수량</span>
+                <span className={styles.purchaseRowTitle}>미송수량<span className={styles.necessary}> *</span></span>
                 <div className={styles.purchaseRowContent}>
                   <input
                     className={styles.purchaseEditInput}
