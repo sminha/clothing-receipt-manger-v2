@@ -18,7 +18,7 @@ import receiptImg from '../../../assets/receipt.png';
 import trashcanImg from '../../../assets/trashcan.png';
 import testReceiptImg from '../../../assets/test_receipt.png';
 import { RootState, AppDispatch } from '../../../redux/store.ts';
-import { PurchaseItem, PurchaseRecord, updatePurchase, deletePurchase, updateMissingQuantity, deleteProduct, getPurchases } from '../../../redux/slices/purchaseSlice.ts';
+import { PurchaseItem, PurchaseRecord, updatePurchase, deletePurchase, updateMissingQuantity, deleteProduct, getPurchases, editPurchase } from '../../../redux/slices/purchaseSlice.ts';
 import { useFilteredPurchaseList } from '../../../hooks/useFilteredPurchaseList.ts';
 // import VirtualizedGrid from '../../../components/VirtualizedGrid.tsx';
 
@@ -492,7 +492,7 @@ export default function ViewOrders() {
 
   const handleSaveEditedPurchase = () => {
     if (editForm) {
-      dispatch(updatePurchase(editForm));
+      dispatch(editPurchase(editForm));
       setOpenedPurchaseEditId(null);
       setOpenedPurchaseId(editForm.id);
     }

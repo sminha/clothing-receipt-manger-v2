@@ -127,6 +127,25 @@ export const getPurchases = createAsyncThunk(
   }
 );
 
+export const editPurchase = createAsyncThunk(
+  'purchase/editPurchase',
+  async (purchaseInfo: PurchaseRecord, { rejectWithValue }) => {
+    try {
+      const res = await axios.put(`http://localhost:5000/api/purchases/${purchaseInfo.id}`, purchaseInfo, {
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      return res.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data.message || '사입내역 수정 실패');
+      } else {
+        return rejectWithValue('서버 오류');
+      }
+    }
+  }
+)
+
 const purchaseSlice = createSlice({
   name: 'purchase',
   initialState,
@@ -200,6 +219,17 @@ const purchaseSlice = createSlice({
         state.records = transformPurchases(action.payload.purchases || []);
       })
       .addCase(getPurchases.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload as string;
+      })
+      .addCase(editPurchase.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(editPurchase.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.records = transformPurchases(action.payload.purchases || []);
+      })
+      .addCase(editPurchase.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload as string;
       })

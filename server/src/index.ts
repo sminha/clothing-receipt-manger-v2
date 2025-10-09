@@ -213,6 +213,67 @@ app.post('/api/purchases', async (req, res) => {
   }
 })
 
+app.put('/api/purchases/:id', async (req, res) => {
+  const { id } = req.params;
+  const { date, vendor, items } = req.body;
+
+  try {
+    await db.query(
+      'UPDATE purchases SET purchase_date = ?, vendor_name = ? WHERE purchase_no = ?;',
+      [date, vendor, id]
+    )
+
+    const [purchaseRows]: any[] = await db.query(
+      'SELECT purchase_id FROM purchases WHERE purchase_no = ?',
+      [id]
+    )
+    const purchaseId = purchaseRows[0]?.purchase_id
+
+    const [existingItems]: any[] = await db.query(
+      'SELECT product_no FROM products WHERE purchase_id = ?',
+      [purchaseId]
+    )
+
+    const existingNos = existingItems.map((item: { product_no: string; }) => item.product_no);
+    const newNos = items.map((item: { product_no: string; }) => item.product_no);
+
+    // 상품 수정
+    for (const item of items) {
+      if (existingNos.includes(item.id)) {
+        await db.query(
+          'UPDATE products SET name = ?, unit_price = ?, quantity = ?, unreceived_quantity = ? WHERE product_no = ?;',
+          [item.name, item.unitPrice, item.quantity, item.missingQuantity, item.itemId]
+        )
+      }
+    }
+
+    // 상품 추가
+    for (const item of items) {
+      if (!existingNos.includes(item.id)) {
+        await db.query(
+          'INSERT INTO products (product_no, purchase_id, name, category, color, size, options, unit_price, quantity, unreceived_quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [item.itemId, purchaseId, item.name, item.category, item.color, item.size, item.options, item.unitPrice, item.quantity, item.missingQuantity]
+        )
+      }
+    }
+
+    // 상품 삭제
+    for (const old of existingItems) {
+      if (!newNos.inclueds(old.product_no)) {
+        await db.query(
+          'DELETE FROM products where product_no = ?',
+          [old.product_no]
+        )
+      }
+    }
+
+    res.status(200).json({ message: '사입내역 수정 완료' });
+  } catch (error) {
+    console.error('사입내역 수정 오류', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+})
+
 app.get('/api/users/:id/purchases', async (req, res) => {
     const { id } = req.params;
 
