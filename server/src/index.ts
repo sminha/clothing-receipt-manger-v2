@@ -217,6 +217,24 @@ app.put('/api/purchases/:id', async (req, res) => {
   const { id } = req.params;
   const { date, vendor, items } = req.body;
 
+  let isAllItemsValid = true;
+  for (const i of items) {
+    if (
+      typeof i.name !== "string" || i.name.trim() === "" ||
+      typeof i.category !== "string" || i.category.trim() === "" ||
+      typeof i.unitPrice !== "number" || i.unitPrice <= 0 ||
+      typeof i.quantity !== "number" || i.quantity <= 0 ||
+      typeof i.missingQuantity !== "number" || i.missingQuantity < 0
+    ) {
+      isAllItemsValid = false;
+      break;
+    }
+  }
+
+  if (!date || !vendor || !isAllItemsValid) {
+    return res.status(400).json({ message: '필수 필드가 누락되었습니다.' });
+  }
+
   try {
     await db.query(
       'UPDATE purchases SET purchase_date = ?, vendor_name = ? WHERE purchase_no = ?;',
@@ -227,6 +245,7 @@ app.put('/api/purchases/:id', async (req, res) => {
       'SELECT purchase_id FROM purchases WHERE purchase_no = ?',
       [id]
     )
+
     const purchaseId = purchaseRows[0]?.purchase_id
 
     const [existingItems]: any[] = await db.query(
@@ -235,21 +254,21 @@ app.put('/api/purchases/:id', async (req, res) => {
     )
 
     const existingNos = existingItems.map((item: { product_no: string; }) => item.product_no);
-    const newNos = items.map((item: { product_no: string; }) => item.product_no);
+    const newNos = items.map((item: { itemId: string; }) => item.itemId);
 
     // 상품 수정
     for (const item of items) {
-      if (existingNos.includes(item.id)) {
+      if (existingNos.includes(item.itemId)) {
         await db.query(
-          'UPDATE products SET name = ?, unit_price = ?, quantity = ?, unreceived_quantity = ? WHERE product_no = ?;',
-          [item.name, item.unitPrice, item.quantity, item.missingQuantity, item.itemId]
+          'UPDATE products SET name = ?, category = ?, color = ?, size = ?, options = ?, unit_price = ?, quantity = ?, unreceived_quantity = ? WHERE product_no = ?;',
+          [item.name, item.category, item.color, item.size, item.options, item.unitPrice, item.quantity, item.missingQuantity, item.itemId]
         )
       }
     }
 
     // 상품 추가
     for (const item of items) {
-      if (!existingNos.includes(item.id)) {
+      if (!existingNos.includes(item.itemId)) {
         await db.query(
           'INSERT INTO products (product_no, purchase_id, name, category, color, size, options, unit_price, quantity, unreceived_quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           [item.itemId, purchaseId, item.name, item.category, item.color, item.size, item.options, item.unitPrice, item.quantity, item.missingQuantity]
@@ -259,7 +278,7 @@ app.put('/api/purchases/:id', async (req, res) => {
 
     // 상품 삭제
     for (const old of existingItems) {
-      if (!newNos.inclueds(old.product_no)) {
+      if (!newNos.includes(old.product_no)) {
         await db.query(
           'DELETE FROM products where product_no = ?',
           [old.product_no]
