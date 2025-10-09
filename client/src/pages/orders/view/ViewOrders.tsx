@@ -490,11 +490,16 @@ export default function ViewOrders() {
     setOpenedProductAdd(false);
   };
 
-  const handleSaveEditedPurchase = () => {
-    if (editForm) {
-      dispatch(editPurchase(editForm));
+  const handleSaveEditedPurchase = async () => {
+    if (!editForm) return;
+
+    const resultAction = await dispatch(editPurchase(editForm));
+
+    if (editPurchase.fulfilled.match(resultAction)) {
       setOpenedPurchaseEditId(null);
       setOpenedPurchaseId(editForm.id);
+    } else {
+      alert(resultAction.payload || '사입내역 수정 실패');
     }
   };
 
@@ -576,7 +581,7 @@ export default function ViewOrders() {
     });
   };
 
-  const handleSaveEditedProduct = () => {
+  const handleSaveEditedProduct = async () => {
     if (!editProductForm || !editPurchaseInfo) return;
 
     const originalPurchase = purchaseList.find((p) => p.id === editPurchaseInfo.id);
@@ -593,7 +598,14 @@ export default function ViewOrders() {
       items: updatedItems,
     };
 
-    dispatch(updatePurchase(updatedPurchase));
+    const resultAction = await dispatch(editPurchase(updatedPurchase));
+
+    if (editPurchase.fulfilled.match(resultAction)) {
+      setOpenedProductId(openedProductEditId);
+      setOpenedProductEditId(null);
+    } else {
+      alert(resultAction.payload || '상품 수정 실패');
+    }
   };
 
   // [TODO] 위치 정리 필요  
@@ -1374,8 +1386,6 @@ export default function ViewOrders() {
                 className={styles.editButton}
                 onClick={() => {
                   handleSaveEditedPurchase();
-                  setOpenedPurchaseId(openedPurchaseEditId);
-                  setOpenedPurchaseEditId(null);
                 }}
               >
                 저장
@@ -1846,8 +1856,6 @@ export default function ViewOrders() {
                 className={styles.editButton}
                 onClick={() => {
                   handleSaveEditedProduct();
-                  setOpenedProductId(openedProductEditId);
-                  setOpenedProductEditId(null);
                 }}
               >
                 저장
