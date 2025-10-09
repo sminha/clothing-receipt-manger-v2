@@ -1319,7 +1319,7 @@ export default function ViewOrders() {
                         <input
                           className={styles.addShortInput}
                           value={(Number(editForm?.items[idx].unitPrice) * Number(editForm?.items[idx].quantity)).toLocaleString()}
-                          readOnly
+                          disabled
                         />
                       </td>
                       <td className={styles.addInputRow}>
@@ -1507,6 +1507,7 @@ export default function ViewOrders() {
                     className={styles.purchaseEditInput}
                     value={newProductForm.totalAmount}
                     onChange={(e) => handleEditNewProductFieldChange('totalAmount', e.target.value)}
+                    disabled
                   />
                 </div>
                 <div className={styles.unitWrapper}>
@@ -1810,6 +1811,7 @@ export default function ViewOrders() {
                     className={styles.purchaseEditInput}
                     value={editProductForm?.totalAmount ?? ''}
                     onChange={(e) => handleEditProductFieldChange('totalAmount', e.target.value)}
+                    disabled
                   />
                 </div>
                 <div className={styles.unitWrapper}>
