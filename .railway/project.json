@@ -1,0 +1,9 @@
+{
+  "build": {
+    "rootDirectory": "server",
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "npm start"
+  }
+}
