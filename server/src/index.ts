@@ -60,6 +60,15 @@ async function detectTextFromImage(imageBuffer: Buffer) {
   }
 }
 
+(async () => {
+  try {
+    const [rows] = await db.query('SELECT NOW() AS now');
+    console.log('✅ DB 연결 성공:', rows);
+  } catch (err) {
+    console.error('❌ DB 연결 실패:', err);
+  }
+})();
+
 app.get("/", async (req, res) => {
   try {
     const [rows] = await db.query("SELECT NOW() AS now");
