@@ -18,7 +18,7 @@ import receiptImg from '../../../assets/receipt.png';
 import trashcanImg from '../../../assets/trashcan.png';
 import testReceiptImg from '../../../assets/test_receipt.png';
 import { RootState, AppDispatch } from '../../../redux/store.ts';
-import { PurchaseItem, PurchaseRecord, updatePurchase, deletePurchase, deleteProduct, getPurchases, editPurchase, editMissingQuantity } from '../../../redux/slices/purchaseSlice.ts';
+import { PurchaseItem, PurchaseRecord, deletePurchase, getPurchases, editPurchase, editMissingQuantity, deleteProducts } from '../../../redux/slices/purchaseSlice.ts';
 import { useFilteredPurchaseList } from '../../../hooks/useFilteredPurchaseList.ts';
 // import VirtualizedGrid from '../../../components/VirtualizedGrid.tsx';
 
@@ -368,6 +368,18 @@ export default function ViewOrders() {
   };
 
   const [isPurchaseDeleteModalOpen, setIsPurchaseDeleteModalOpen] = useState<boolean>(false);
+
+  const handleDeletePurchase = async () => {
+    if (!openedPurchaseId) return;
+
+    const resultAction = await dispatch(deletePurchase(openedPurchaseId));
+
+    if (deletePurchase.fulfilled.match(resultAction)) {
+      setIsPurchaseDeleteModalOpen(false);
+    } else {
+      alert(resultAction.payload || '사입내역 삭제 실패');
+    }
+  }
 
   // 사입번호 수정 모달
   const [openedPurchaseEditId, setOpenedPurchaseEditId] = useState<string | null>(null);
@@ -1209,7 +1221,6 @@ export default function ViewOrders() {
                 <button
                   className={styles.deleteButton} 
                   onClick={() => {
-                    // dispatch(deletePurchase(openedPurchaseId));
                     setIsPurchaseDeleteModalOpen(true);
                   }}
                 >
@@ -1256,10 +1267,7 @@ export default function ViewOrders() {
               </button>
               <button
                 className={styles.editButton}
-                onClick={() => {
-                  dispatch(deletePurchase(openedPurchaseId));
-                  setIsPurchaseDeleteModalOpen(false);
-                }}
+                onClick={handleDeletePurchase}
               >
                 확인
               </button>

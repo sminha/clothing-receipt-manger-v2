@@ -293,6 +293,34 @@ app.put('/api/purchases/:id', async (req, res) => {
   }
 })
 
+app.delete('/api/purchases/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [purchaseRows]: any[] = await db.query(
+      'SELECT purchase_id FROM purchases WHERE purchase_no = ?',
+      [id]
+    )
+
+    const purchaseId = purchaseRows[0]?.purchase_id;
+
+    await db.query(
+      'DELETE FROM products where purchase_id = ?',
+      [purchaseId]
+    )
+
+    await db.query(
+      'DELETE FROM purchases where purchase_id = ?',
+      [purchaseId]
+    )
+
+    res.status(200).json({ message: '사입내역 삭제 완료' });
+  } catch (error) {
+    console.error('사입내역 삭제 오류', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+})
+
 app.patch('/api/products/unreceived', async (req, res) => {
   const items = req.body;
 

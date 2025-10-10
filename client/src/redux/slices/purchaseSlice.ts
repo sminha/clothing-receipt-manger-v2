@@ -165,6 +165,25 @@ export const editMissingQuantity = createAsyncThunk(
   }
 )
 
+export const deletePurchase = createAsyncThunk(
+  'purchase/deletePurchase',
+  async (purchaseId: string, { rejectWithValue }) => {
+    try {
+      const res = await axios.delete(`http://localhost:5000/api/purchases/${purchaseId}`, {
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      return res.data;
+    } catch (error) {
+      if(axios.isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data.message || '사입내역 삭제 실패');
+      } else {
+        return rejectWithValue('서버 오류');
+      }
+    }
+  }
+)
+
 const purchaseSlice = createSlice({
   name: 'purchase',
   initialState,
@@ -187,9 +206,9 @@ const purchaseSlice = createSlice({
         state.records[index] = action.payload;
       }
     },
-    deletePurchase(state, action: PayloadAction<string>) {
-      state.records = state.records.filter((record) => record.id !== action.payload);
-    },
+    // deletePurchase(state, action: PayloadAction<string>) {
+    //   state.records = state.records.filter((record) => record.id !== action.payload);
+    // },
     resetPurchases(state) {
       state.records = [];
     },
@@ -271,6 +290,15 @@ const purchaseSlice = createSlice({
         state.status = 'failed';
         state.error = action.payload as string;
       })
+      .addCase(deletePurchase.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(deletePurchase.fulfilled, (state) => {
+        state.status = 'succeeded';
+      })
+      .addCase(deletePurchase.rejected, (state) => {
+        state.status = 'failed';
+      })
   },
 });
 
@@ -278,7 +306,7 @@ export const {
   setPurchases,
   addPurchase,
   updatePurchase,
-  deletePurchase,
+  // deletePurchase,
   resetPurchases,
   updateMissingQuantity,
   deleteProduct,
