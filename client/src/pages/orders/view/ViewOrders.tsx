@@ -18,7 +18,7 @@ import receiptImg from '../../../assets/receipt.png';
 import trashcanImg from '../../../assets/trashcan.png';
 import testReceiptImg from '../../../assets/test_receipt.png';
 import { RootState, AppDispatch } from '../../../redux/store.ts';
-import { PurchaseItem, PurchaseRecord, updatePurchase, deletePurchase, updateMissingQuantity, deleteProduct, getPurchases, editPurchase } from '../../../redux/slices/purchaseSlice.ts';
+import { PurchaseItem, PurchaseRecord, updatePurchase, deletePurchase, deleteProduct, getPurchases, editPurchase, editMissingQuantity } from '../../../redux/slices/purchaseSlice.ts';
 import { useFilteredPurchaseList } from '../../../hooks/useFilteredPurchaseList.ts';
 // import VirtualizedGrid from '../../../components/VirtualizedGrid.tsx';
 
@@ -282,10 +282,17 @@ export default function ViewOrders() {
   // 미송수량 일괄 변경
   const [isUnreceivedModalOpen, setIsUnreceivedModalOpen] = useState<boolean>(false);
 
-  const handleMissingQuantity = () => {
-    for (const row of selectedRows) {
-      dispatch(updateMissingQuantity({ recordId: row.recordId, itemId: row.itemId, missingQuantity: 0 }))
-    };
+  const handleMissingQuantity = async () => {
+    const items = selectedRows.map((val) => ({ itemId: val.itemId, missingQuantity: 0 }));
+
+    const resultAction = await dispatch(editMissingQuantity(items));
+
+    if (editMissingQuantity.fulfilled.match(resultAction)) {
+      setIsUnreceivedModalOpen(false);
+      setSelectedRows([]);
+    } else {
+      alert(resultAction.payload || '미송수량 수정 실패');
+    }
   }
 
   // 엑셀 다운로드
@@ -641,6 +648,20 @@ export default function ViewOrders() {
       setLocalMissingQuantity(selectedProductReservation.product.missingQuantity);
     }
   }, [selectedProductReservation]);
+
+  const handleOneMissingQuantity = async () => {
+    if (!selectedProductReservation) return;
+
+    const items = [{ itemId: selectedProductReservation.product.itemId, missingQuantity: localMissingQuantity }]
+
+    const resultAction = await dispatch(editMissingQuantity(items));
+
+    if (editMissingQuantity.fulfilled.match(resultAction)) {
+      setOpenedProductReservationId(null);
+    } else {
+      alert(resultAction.payload || '미송수량 수정 실패');
+    }
+  }
 
   // 테이블 스크롤
   const headerRef = useRef<HTMLDivElement>(null);
@@ -1090,11 +1111,7 @@ export default function ViewOrders() {
               </button>
               <button
                 className={styles.editButton}
-                onClick={() => {
-                  handleMissingQuantity();
-                  setIsUnreceivedModalOpen(false);
-                  setSelectedRows([]);
-                }}
+                onClick={handleMissingQuantity}
               >
                 확인
               </button>
@@ -1896,14 +1913,7 @@ export default function ViewOrders() {
               <button className={styles.deleteButton} onClick={() => setOpenedProductReservationId(null)}>취소</button>
               <button
                 className={styles.editButton}
-                onClick={() => {
-                  dispatch(updateMissingQuantity({
-                    recordId: selectedProductReservation.purchase.id,
-                    itemId: selectedProductReservation.product.itemId,
-                    missingQuantity: localMissingQuantity,
-                  }));
-                  setOpenedProductReservationId(null);
-                }}
+                onClick={handleOneMissingQuantity}
               >
                 수정
               </button>

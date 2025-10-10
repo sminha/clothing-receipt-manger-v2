@@ -146,6 +146,25 @@ export const editPurchase = createAsyncThunk(
   }
 )
 
+export const editMissingQuantity = createAsyncThunk(
+  'purchase/editMissingQuantity',
+  async (items: { itemId: string; missingQuantity: number }[], { rejectWithValue }) => {
+    try {
+      const res = await axios.patch('http://localhost:5000/api/products/unreceived', items, {
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      return res.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data.message || '미송수량 수정 실패');
+      } else {
+        return rejectWithValue('서버 오류');
+      }
+    }
+  }
+)
+
 const purchaseSlice = createSlice({
   name: 'purchase',
   initialState,
@@ -230,6 +249,25 @@ const purchaseSlice = createSlice({
         state.records = transformPurchases(action.payload.purchases || []);
       })
       .addCase(editPurchase.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload as string;
+      })
+      .addCase(editMissingQuantity.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(editMissingQuantity.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+
+        const updateItems = action.payload.items;
+        state.records = state.records.map((record) => ({
+          ...record,
+          items: record.items.map((item => {
+            const found = updateItems.find((u: { itemId: string, missingQuantity: number }) => u.itemId === item.itemId);
+            return found ? { ...item, missingQuantity: found.missingQuantity } : item;
+          }))
+        }))
+      })
+      .addCase(editMissingQuantity.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload as string;
       })

@@ -293,6 +293,27 @@ app.put('/api/purchases/:id', async (req, res) => {
   }
 })
 
+app.patch('/api/products/unreceived', async (req, res) => {
+  const items = req.body;
+
+  try {
+    for (const { itemId, missingQuantity } of items) {
+      await db.query(
+        'UPDATE products SET unreceived_quantity = ? where product_no = ?',
+        [missingQuantity, itemId]
+      )
+    }
+
+    res.status(200).json({ 
+      message: '미송수량 수정 완료',
+      items: items,
+    });
+  } catch (error) {
+    console.error('미송수량 수정 오류', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+})
+
 app.get('/api/users/:id/purchases', async (req, res) => {
     const { id } = req.params;
 
