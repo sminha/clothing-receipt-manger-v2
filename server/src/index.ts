@@ -342,6 +342,43 @@ app.patch('/api/products/unreceived', async (req, res) => {
   }
 })
 
+app.delete('/api/products', async (req, res) => {
+  const items = req.body;
+
+  try {
+    for (const { purchaseNo, itemId } of items) {
+      await db.query(
+        'DELETE FROM products WHERE product_no = ?',
+        [itemId]
+      )
+
+      const [purchaseRows]: any[] = await db.query(
+        'SELECT purchase_id FROM purchases WHERE purchase_no = ?',
+        [purchaseNo]
+      )
+
+      const purchaseId = purchaseRows[0]?.purchase_id;
+
+      const [rows]: any[] = await db.query(
+        'SELECT * FROM products WHERE purchase_id = ?',
+        [purchaseId]
+      )
+
+      if (rows.length === 0) {
+        await db.query(
+          'DELETE FROM purchases WHERE purchase_id = ?',
+          [purchaseId]
+        )
+      }
+    }
+
+    res.status(200).json({ message: '상품 삭제 완료' });
+  } catch (error) {
+    console.error('상품 삭제 실패', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+})
+
 app.get('/api/users/:id/purchases', async (req, res) => {
     const { id } = req.params;
 

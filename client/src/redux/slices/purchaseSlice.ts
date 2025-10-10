@@ -184,6 +184,26 @@ export const deletePurchase = createAsyncThunk(
   }
 )
 
+export const deleteProducts = createAsyncThunk(
+  'purchase/deleteProducts',
+  async (itemInfo: { purchaseNo: string, itemId: string }[], { rejectWithValue }) => {
+    try {
+      const res = await axios.delete('http://localhost:5000/api/products', {
+        headers: { 'Content-Type': 'application/json' },
+        data: itemInfo,
+      })
+
+      return res.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data.message || '상품 삭제 실패');
+      } else {
+        return rejectWithValue('서버 오류');
+      }
+    }
+  }
+)
+
 const purchaseSlice = createSlice({
   name: 'purchase',
   initialState,
@@ -297,6 +317,15 @@ const purchaseSlice = createSlice({
         state.status = 'succeeded';
       })
       .addCase(deletePurchase.rejected, (state) => {
+        state.status = 'failed';
+      })
+      .addCase(deleteProducts.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(deleteProducts.fulfilled, (state) => {
+        state.status = 'succeeded';
+      })
+      .addCase(deleteProducts.rejected, (state) => {
         state.status = 'failed';
       })
   },

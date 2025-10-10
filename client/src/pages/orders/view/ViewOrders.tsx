@@ -254,29 +254,19 @@ export default function ViewOrders() {
   // 선택삭제
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
 
-  const handleDeleteSelectedProducts = () => {
+  const handleDeleteSelectedProducts = async () => {
     if (selectedRows.length === 0) return;
 
-    const recordsToUpdate: Record<string, string[]> = {};
-    selectedRows.forEach(({ recordId, itemId }) => {
-      if (!recordsToUpdate[recordId]) recordsToUpdate[recordId] = [];
-      recordsToUpdate[recordId].push(itemId);
-    });
+    const itemInfo = selectedRows.map((row) => ({ purchaseNo: row.recordId, itemId: row.itemId }));
 
-    Object.entries(recordsToUpdate).forEach(([recordId, itemIds]) => {
-      const record = purchaseList.find(r => r.id === recordId);
-      if (!record) return;
+    const resultAction = await dispatch(deleteProducts(itemInfo));
 
-      const remainingItems = record.items.filter(item => !itemIds.includes(item.itemId));
-
-      if (remainingItems.length === 0) {
-        dispatch(deletePurchase(recordId));
-      } else {
-        dispatch(updatePurchase({ ...record, items: remainingItems }));
-      }
-    });
-
-    setSelectedRows([]);
+    if (deleteProducts.fulfilled.match(resultAction)) {
+      setIsDeleteModalOpen(false);
+      setSelectedRows([]);
+    } else {
+      alert(resultAction.payload || '선택삭제 실패');
+    }
   };
   
   // 미송수량 일괄 변경
@@ -546,6 +536,19 @@ export default function ViewOrders() {
   };
 
   const [isProductDeleteModalOpen, setIsProductDeleteModalOpen] = useState<boolean>(false);
+
+  const handleDeleteProduct = async () => {
+    if (!selectedProduct) return;
+
+    const resultAction = await dispatch(deleteProducts([{ purchaseNo: selectedProduct.purchase.id, itemId: selectedProduct.product.itemId }]));
+
+    if (deleteProducts.fulfilled.match(resultAction)) {
+      setIsProductDeleteModalOpen(false);
+      setOpenedProductId(null);
+    } else {
+      alert(resultAction.payload || '사입내역 삭제 실패');
+    }
+  }
 
   // 상품사입번호 수정 모달
   const [openedProductEditId, setOpenedProductEditId] = useState<string | null>(null);
@@ -1085,11 +1088,7 @@ export default function ViewOrders() {
               </button>
               <button
                 className={styles.editButton}
-                onClick={() => {
-                  handleDeleteSelectedProducts();
-                  setIsDeleteModalOpen(false);
-                  setSelectedRows([]);
-                }}
+                onClick={handleDeleteSelectedProducts}
               >
                 확인
               </button>
@@ -1667,7 +1666,6 @@ export default function ViewOrders() {
               <button
                 className={styles.deleteButton}
                 onClick={() => {
-                  // dispatch(deleteProduct({ recordId: selectedProduct.purchase.id, itemId: selectedProduct.product.itemId }))
                   setIsProductDeleteModalOpen(true);
                 }}
               >
@@ -1714,10 +1712,7 @@ export default function ViewOrders() {
               </button>
               <button
                 className={styles.editButton}
-                onClick={() => {
-                  dispatch(deleteProduct({ recordId: selectedProduct.purchase.id, itemId: selectedProduct.product.itemId }))
-                  setIsProductDeleteModalOpen(false);
-                }}
+                onClick={handleDeleteProduct}
               >
                 확인
               </button>
