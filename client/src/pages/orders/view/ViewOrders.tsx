@@ -718,7 +718,7 @@ export default function ViewOrders() {
     <div className={styles.myPage}>
       <div className={styles.header}>
         <div className={styles.logo}>
-          <img src={buttonPng} className={styles.logoImg} />
+          <img src={buttonPng} className={styles.logoImg} alt="서비스 로고 이미지" />
           <span className={styles.logoText}>옷장</span>
         </div>
         <div className={styles.navBar}>
@@ -727,7 +727,7 @@ export default function ViewOrders() {
           <Link to="" className={styles.menu}>내 통계</Link>
         </div>
         <div className={styles.profile}>
-          <img src={profileImg} className={styles.profileImage} />
+          <img src={profileImg} className={styles.profileImage} alt="내 프로필 이미지" />
           <span className={styles.profileName} role="button" onClick={toggleDropdown}>{userInfo.name}님</span>
           {isDropdownOpen && (
             <div className={styles.dropdown} ref={dropdownRef}>
@@ -848,7 +848,7 @@ export default function ViewOrders() {
             </div>
             <div className={styles.rightResultNavBar}>
               <button className={styles.downloadButton} onClick={handleDownloadExcel}>
-                <img src={excelImg} className={styles.excelImg} />
+                <img src={excelImg} className={styles.excelImg} alt="엑셀 아이콘" />
                 엑셀 다운로드
               </button>
             </div>
