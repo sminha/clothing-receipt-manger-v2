@@ -1,21 +1,53 @@
+// {
+//   "files": [],
+//   "references": [
+//     { "path": "./tsconfig.app.json" },
+//     { "path": "./tsconfig.node.json" }
+//   ],
+//   "compilerOptions": {
+//     "target": "es6",
+//     "module": "commonjs",
+//     "jsx": "react-jsx",
+//     "esModuleInterop": true,
+//     "moduleResolution": "node",
+//     "allowJs": true,
+//     "resolveJsonModule": true,
+//     "isolatedModules": true,
+//     "skipLibCheck": true,
+//     "strict": true,
+//   },
+//   "include": ["src"],
+//   "exclude": ["node_modules", "dist"]
+// }
+
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ],
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
+    /* 기본 설정 */
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-    "allowJs": true,
+
+    /* 모듈 처리 */
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowJs": true,
     "isolatedModules": true,
-    "skipLibCheck": true,
+
+    /* 타입 안정성 */
     "strict": true,
+    "skipLibCheck": true,
+    "noUncheckedSideEffectImports": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    /* 기타 */
+    "forceConsistentCasingInFileNames": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true
   },
-  "include": ["src"],
+  "include": ["src", "vite.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
