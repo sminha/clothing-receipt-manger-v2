@@ -20,7 +20,8 @@
 
 .image {
   width: 180px;
-  height: 180px;
+  max-width: 180px;
+  height: auto;
 }
 
 .title {
@@ -40,8 +41,61 @@
 
 .button {
   width: 600px;
+  padding: 15px;
   border-radius: 20px;
   background-color: #7B5E57;
   font-size: 10;
   color: #FFFFFF;
+  border: none;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .container {
+    width: 79%;
+    padding: 6%;
+  }
+  
+  .button {
+    width: 99%;
+  }
+}
+
+@media (max-width: 607px) {
+  .description {
+    display: none;
+  }
+
+  .image {
+    width: 30%;
+  }
+
+  .title {
+    margin-bottom: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    width: 200px;
+    padding: 30px;
+  }
+
+  .image {
+    width: 50%;
+  }
+
+  .title {
+    margin-bottom: 30px;
+    font-size: 0.9rem;
+  }
+
+  .description {
+    display: none;
+  }
+
+  .button {
+    width: 100%;
+    font-size: 0.8rem;
+  }
 }

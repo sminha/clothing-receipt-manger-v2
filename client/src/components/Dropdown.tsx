@@ -9,7 +9,6 @@ interface DropdownProps {
 }
 
 const Dropdown: React.FC<DropdownProps> = ({ options, width, onChange }) => {
-  // const [selectedOption, setSelectedOption] = useState(options[0]);
   const [selectedOption, setSelectedOption] = useState(() => { return options[0] !== '50개씩' ? options[0] : options[1] })
   const [isOpen, setIsOpen] = useState(false);
 

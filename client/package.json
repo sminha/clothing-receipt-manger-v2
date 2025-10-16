@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
+    "axios": "^1.12.2",
     "date-fns": "^4.1.0",
+    "dayjs": "^1.11.18",
     "file-saver": "^2.0.5",
     "react": "^18.3.1",
     "react-datepicker": "^8.4.0",
@@ -20,6 +22,8 @@
     "react-icons": "^5.5.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^6.30.1",
+    "react-virtualized": "^9.22.6",
+    "react-window": "^2.1.2",
     "redux-persist": "^6.0.0",
     "xlsx": "^0.18.5"
   },

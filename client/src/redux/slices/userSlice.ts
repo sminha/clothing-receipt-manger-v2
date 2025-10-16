@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import dayjs from 'dayjs';
 
 interface UserState {
   id: number | null;
@@ -99,7 +100,8 @@ const userSlice = createSlice({
         state.id = user.id;
         state.company = user.company;
         state.name = user.name;
-        state.birth = user.birth;
+        // state.birth = user.birth;
+        state.birth = dayjs(user.birth).format('YYMMDD');
         state.gender = user.gender;
         state.carrier = user.carrier;
         state.phone = user.phone;

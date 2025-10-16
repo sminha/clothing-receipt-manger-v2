@@ -170,3 +170,38 @@
 button:focus {
   outline: none;
 }
+
+@media (max-width: 768px) {
+  .container {
+    width: 52%;
+  }
+}
+
+/* @media (max-width: 650px) {
+  .container {
+    width: 52%;
+  }
+
+  .description {
+    display: none;
+  }
+} */
+
+@media (max-width: 650px) {
+  /* .title {
+    font-size: 1rem;
+  } */
+
+  .image {
+    width: 30%;
+    height: 30%;
+  }
+
+  .title {
+    margin-bottom: 30px;
+  }
+
+  .description {
+    display: none;
+  }
+}

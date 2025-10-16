@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './SearchInput.module.css';
 import { FaChevronDown } from 'react-icons/fa';
 
@@ -23,15 +23,27 @@ const SearchInput: React.FC<Props> = ({ keyword, onKeywordChange, target, onTarg
     setIsOpen(false);
   };
 
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <div className={styles.searchContainer}>
-      <div className={styles.filterWrapper} onClick={toggleDropdown}>
+      <div className={styles.filterWrapper} onClick={toggleDropdown} ref={dropdownRef}>
         <span>{options.find(opt => opt.value === target)?.label ?? '거래처명'}</span>
         <FaChevronDown size={10} className={styles.icon} />
         {isOpen && (
           <ul className={styles.dropdown}>
             {options.map(option => (
-              <li key={option.value} onClick={() => handleSelect(option.value)}>
+              <li key={option.value} onClick={() => { handleSelect(option.value); toggleDropdown(); }}>
                 {option.label}
               </li>
             ))}

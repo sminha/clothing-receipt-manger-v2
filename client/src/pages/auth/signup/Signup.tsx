@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+// import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from './Signup.module.css';
@@ -13,6 +13,7 @@ export default function SignupPage() {
 
   const signupInfo = useSelector((state: RootState) => state.signup);
 
+  /* 인증번호 구현 후 필요
   const [isCodeSent, setIsCodeSent] = useState<boolean>(false);
   // const [code, setCode] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState(180);
@@ -34,6 +35,7 @@ export default function SignupPage() {
 
     return () => clearInterval(timer);
   }, []);
+  */
 
   // useEffect(() => {
   //   console.log('회원가입 화면:', signupInfo);
@@ -99,16 +101,16 @@ export default function SignupPage() {
             {/* <button className={styles.button} onClick={() => navigate('/login')}>회원가입하기</button> */}
             <button className={styles.button} onClick={handleSignup}>회원가입하기</button>
           </>
-           {/* :
-           <>
-             <form className={styles.form} autoComplete="off">
-               <div className={styles.codeInputWrapper}>
-                 <input name="code" className={styles.codeInput} placeholder="인증번호 6자리를 입력해주세요." autoComplete="off" />
-                 <p className={styles.counter}>{display}</p>
-               </div>
-             </form>
-             <button className={styles.button} onClick={() => navigate('/login')}>회원가입하기</button>
-           </> */}
+          {/* :
+          <>
+            <form className={styles.form} autoComplete="off">
+              <div className={styles.codeInputWrapper}>
+                <input name="code" className={styles.codeInput} placeholder="인증번호 6자리를 입력해주세요." autoComplete="off" />
+                <p className={styles.counter}>{display}</p>
+              </div>
+            </form>
+            <button className={styles.button} onClick={() => navigate('/login')}>회원가입하기</button>
+          </> */}
           
         <div className={styles.loginWrapper}>
           <p className={styles.loginText}>이미 계정이 있으신가요?</p>

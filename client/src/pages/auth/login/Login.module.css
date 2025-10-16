@@ -116,3 +116,15 @@
 button:focus {
   outline: none;
 }
+
+@media (max-width: 768px) {
+  .container {
+    width: 52%;
+  }
+}
+
+@media (max-width: 480px) {
+  .description {
+    display: none;
+  }
+}
