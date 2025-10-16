@@ -111,7 +111,7 @@ export default function ViewOrders() {
     else if (isOneWeekRange) { setSelectedRange('일주일'); setCustomDateRange({ start: null, end: null}); }
     else if (isOneMonthRange) { setSelectedRange('1개월'); setCustomDateRange({ start: null, end: null}); }
     else if (isThreeMonthsRange) { setSelectedRange('3개월'); setCustomDateRange({ start: null, end: null}); }
-    else { setSelectedRange(null); setCustomDateRange({ start: startDate, end: endDate}); }
+    // else { setSelectedRange(null); setCustomDateRange({ start: startDate, end: endDate}); } // 수정 필요
   }, [startDate, endDate]);
 
   const [customDateRange, setCustomDateRange] = useState<{ start: Date | null; end: Date | null; }>({ start: null, end: null });
@@ -121,6 +121,9 @@ export default function ViewOrders() {
 
   // 검색 결과
   const [isSearchClicked, setIsSearchClicked] = useState(false);
+
+  // [DEBUGGING]
+  useEffect(() => console.log(isSearchClicked), []);
 
   useEffect(() => {
     async function fetchPurchases() {
@@ -562,6 +565,9 @@ export default function ViewOrders() {
     vendor: string;
   } | null>(null);
 
+  // [DEBUGGING]
+  useEffect(() => console.log(purchaseInfo), []);
+
   useEffect(() => {
     if (openedProductEditId && selectedProduct) {
       setEditProductForm(selectedProduct.product);
@@ -633,9 +639,9 @@ export default function ViewOrders() {
   // [TODO] 위치 정리 필요  
   const [openedReceiptModalIndex, setOpenedReceiptModalIndex] = useState<number | null>(null);
 
-  const handleReceiptClick = (index: number) => {
-    setOpenedReceiptModalIndex(index);
-  }
+  // const handleReceiptClick = (index: number) => {
+  //   setOpenedReceiptModalIndex(index);
+  // }
 
   // 미송수량 수정
   const [openedProductReservationId, setOpenedProductReservationId] = useState<string | null>(null);
@@ -1019,7 +1025,7 @@ export default function ViewOrders() {
                             <img
                               src={receiptImg}
                               className={styles.receiptImg}
-                              onClick={() => handleReceiptClick(row.recordId)}
+                              // onClick={() => handleReceiptClick(row.recordId)}
                             />
                           </td>
                         </tr>
